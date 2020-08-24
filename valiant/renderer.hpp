@@ -18,10 +18,12 @@ const int DEFAULT_WINDOW_WIDTH = 640;
 const int DEFAULT_WINDOW_HEIGHT = 480;
 }  // namespace
 
+enum class RenderMode { ENABLE, DISABLE };
+
 class Renderer {
    public:
-    Renderer(bool render = false)
-        : render_(render), renderer_(nullptr), window_(nullptr) {
+    Renderer(RenderMode render_mode = RenderMode::ENABLE)
+        : render_mode_(render_mode), renderer_(nullptr), window_(nullptr) {
         initialize_sdl();
     }
 
@@ -39,7 +41,7 @@ class Renderer {
         for (auto object : objects_) {
             object->start();
         }
-        if (render_) {
+        if (render_mode_ == RenderMode::ENABLE) {
             SDL_Event event;
             bool quit = false;
             while (quit == false) {
@@ -83,12 +85,12 @@ class Renderer {
 
    private:
     std::vector<Object*> objects_;
-    bool render_;
+    RenderMode render_mode_;
     SDL_Renderer* renderer_;
     SDL_Window* window_;
 
     void initialize_sdl() {
-        if (render_) {
+        if (render_mode_ == RenderMode::ENABLE) {
             SDL_Init(SDL_INIT_VIDEO);
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
             window_ = SDL_CreateWindow(

@@ -22,7 +22,7 @@ TEST_CASE("Sprite renderer properties") {
         std::string fake_sprite_path_;
     };
     SpriteObject sprite_object(fake_sprite_path);
-    valiant::Renderer renderer;
+    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     // Test sprite renderer component default values
     valiant::SpriteRendererComponent sprite_renderer =
         sprite_object.sprite_renderer;
@@ -51,7 +51,7 @@ TEST_CASE("Sprite renderer successful sprite") {
         std::string sprite_path_;
     };
     SpriteObject sprite_object(sprite_path);
-    valiant::Renderer renderer;
+    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     renderer.add_object(sprite_object);
     renderer.run();
     REQUIRE_NOTHROW(sprite_object.set_sprite());

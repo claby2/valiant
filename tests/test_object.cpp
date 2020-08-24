@@ -34,7 +34,7 @@ TEST_CASE("Object creation") {
     };
     Player player;
     Enemy enemy;
-    valiant::Renderer renderer;
+    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     renderer.add_object(player);
     renderer.add_object(enemy);
     renderer.run();
@@ -60,7 +60,7 @@ TEST_CASE("Object transform") {
     REQUIRE(position.x == 0);
     REQUIRE(position.y == 0);
     REQUIRE(position.z == 0);
-    valiant::Renderer renderer;
+    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     renderer.add_object(player);
     renderer.run();
     position = player.transform.position;

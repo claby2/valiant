@@ -31,7 +31,7 @@ class Player : public valiant::Object, public valiant::SpriteRenderer {
 };
 
 int main() {
-    valiant::Renderer renderer(true);
+    valiant::Renderer renderer;
     Player player;
     renderer.add_object(player);
     renderer.run();
