@@ -6,5 +6,6 @@
 #include "object.hpp"
 #include "renderer.hpp"
 #include "sprite_renderer.hpp"
+#include "time.hpp"
 
 #endif

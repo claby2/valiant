@@ -4,6 +4,7 @@
 #include <string>
 
 #include "input.hpp"
+#include "time.hpp"
 
 namespace valiant {
 struct Vector3 {
@@ -22,6 +23,7 @@ class Object {
    public:
     Transform transform;
     Input input;
+    Time time;
     virtual void awake() {}
     virtual void start() {}
     virtual void update() {}

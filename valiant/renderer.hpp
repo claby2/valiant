@@ -11,6 +11,7 @@
 #include "error.hpp"
 #include "object.hpp"
 #include "sprite_renderer.hpp"
+#include "time.hpp"
 
 namespace valiant {
 namespace {
@@ -44,7 +45,14 @@ class Renderer {
         if (render_mode_ == RenderMode::ENABLE) {
             SDL_Event event;
             bool quit = false;
+            uint64_t start = 0;
             while (quit == false) {
+                uint64_t last = start;
+                start = SDL_GetPerformanceCounter();
+                // Calculate delta time in seconds
+                double delta = (((start - last) * 1000 /
+                                 (double)SDL_GetPerformanceFrequency()) *
+                                0.001);
                 if (SDL_PollEvent(&event) != 0) {
                     if (event.type == SDL_QUIT) {
                         quit = true;
@@ -53,6 +61,8 @@ class Renderer {
                 for (auto object : objects_) {
                     // Update event state for each object
                     object->input.event = event;
+                    // Update time for each object
+                    object->time.set(delta);
                     // Run update object method
                     object->update();
                 }
