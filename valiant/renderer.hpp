@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "camera.hpp"
 #include "error.hpp"
 #include "object.hpp"
 #include "sprite_renderer.hpp"
@@ -24,7 +25,11 @@ enum class RenderMode { ENABLE, DISABLE };
 class Renderer {
    public:
     Renderer(RenderMode render_mode = RenderMode::ENABLE)
-        : render_mode_(render_mode), renderer_(nullptr), window_(nullptr) {
+        : camera_(nullptr),
+          has_camera_(false),
+          render_mode_(render_mode),
+          renderer_(nullptr),
+          window_(nullptr) {
         initialize_sdl();
     }
 
@@ -35,13 +40,28 @@ class Renderer {
         objects_.push_back(&object);
     }
 
+    inline void add_camera(Camera& camera) {
+        has_camera_ = true;
+        camera_ = &camera;
+    }
+
     void run() {
+        // Check if camera has been added
+        Camera new_camera;
+        if (has_camera_ == false) {
+            // Create a camera as no camera has been added
+            camera_ = &new_camera;
+        }
+        // Run awake methods
         for (auto object : objects_) {
             object->awake();
         }
+        camera_->awake();
+        // Run start methods
         for (auto object : objects_) {
             object->start();
         }
+        camera_->start();
         if (render_mode_ == RenderMode::ENABLE) {
             SDL_Event event;
             bool quit = false;
@@ -58,6 +78,7 @@ class Renderer {
                         quit = true;
                     }
                 }
+                // Run update methods
                 for (auto object : objects_) {
                     // Update event state for each object
                     object->input.event = event;
@@ -66,6 +87,10 @@ class Renderer {
                     // Run update object method
                     object->update();
                 }
+                camera_->input.event = event;
+                camera_->time.set(delta);
+                camera_->update();
+                // Rendering
                 SDL_RenderClear(renderer_);
                 for (auto object : objects_) {
                     if (SpriteRenderer* sprite_object =
@@ -77,10 +102,13 @@ class Renderer {
                             sprite_object->sprite_renderer.sprite
                                 .create_texture(renderer_);
                         }
-                        SDL_Rect rect = {object->transform.position.x,
-                                         object->transform.position.y,
-                                         sprite_renderer.sprite.surface->w,
-                                         sprite_renderer.sprite.surface->h};
+                        SDL_Rect rect = {
+                            object->transform.position.x,
+                            object->transform.position.y,
+                            (int)(sprite_renderer.sprite.surface->w /
+                                  camera_->camera.size),
+                            (int)(sprite_renderer.sprite.surface->h /
+                                  camera_->camera.size)};
                         SDL_RendererFlip flip = (SDL_RendererFlip)(
                             (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
                             (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));
@@ -96,6 +124,8 @@ class Renderer {
 
    private:
     std::vector<Object*> objects_;
+    Camera* camera_;
+    bool has_camera_;
     RenderMode render_mode_;
     SDL_Renderer* renderer_;
     SDL_Window* window_;
