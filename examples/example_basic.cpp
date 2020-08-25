@@ -48,6 +48,7 @@ class Player : public valiant::Object, public valiant::SpriteRenderer {
     bool d_;
 
     void move() {
+        int delta = move_speed_;
         if (w_) {
             transform.position.y -= delta;
         }
