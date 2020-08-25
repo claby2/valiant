@@ -63,19 +63,20 @@ class Renderer {
                         // Object has sprite renderer component
                         SpriteRendererComponent sprite_renderer =
                             sprite_object->sprite_renderer;
-                        SDL_Surface* surface = sprite_renderer.sprite.surface;
-                        SDL_Texture* texture =
-                            SDL_CreateTextureFromSurface(renderer_, surface);
+                        if (sprite_renderer.sprite.texture == nullptr) {
+                            sprite_object->sprite_renderer.sprite
+                                .create_texture(renderer_);
+                        }
                         SDL_Rect rect = {object->transform.position.x,
                                          object->transform.position.y,
-                                         surface->w, surface->h};
+                                         sprite_renderer.sprite.surface->w,
+                                         sprite_renderer.sprite.surface->h};
                         SDL_RendererFlip flip = (SDL_RendererFlip)(
                             (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
                             (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));
-                        SDL_RenderCopyEx(renderer_, texture, nullptr, &rect,
-                                         0.0, nullptr, flip);
-                        SDL_DestroyTexture(texture);
-                        texture = nullptr;
+                        SDL_RenderCopyEx(renderer_,
+                                         sprite_renderer.sprite.texture,
+                                         nullptr, &rect, 0.0, nullptr, flip);
                     }
                 }
                 SDL_RenderPresent(renderer_);
