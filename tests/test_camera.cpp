@@ -3,6 +3,16 @@
 #include "../valiant/camera.hpp"
 #include "../valiant/renderer.hpp"
 
+TEST_CASE("Camera default values") {
+    class Camera : public valiant::Camera {};
+    Camera camera;
+    valiant::Vector3 position = camera.transform.position;
+    REQUIRE(position.x == 0);
+    REQUIRE(position.y == 0);
+    REQUIRE(position.z == 0);
+    REQUIRE(camera.camera.size == valiant::DEFAULT_CAMERA_SIZE);
+}
+
 TEST_CASE("Camera methods") {
     class Camera : public valiant::Camera {
        public:

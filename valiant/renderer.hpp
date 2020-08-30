@@ -26,6 +26,8 @@ class Renderer {
    public:
     Renderer(RenderMode render_mode = RenderMode::ENABLE)
         : camera_(nullptr),
+          window_width_(DEFAULT_WINDOW_WIDTH),
+          window_height_(DEFAULT_WINDOW_HEIGHT),
           has_camera_(false),
           render_mode_(render_mode),
           renderer_(nullptr),
@@ -44,6 +46,10 @@ class Renderer {
         has_camera_ = true;
         camera_ = &camera;
     }
+
+    inline int window_width() const { return window_width_; }
+
+    inline int window_height() const { return window_height_; }
 
     void run() {
         // Check if camera has been added
@@ -67,9 +73,7 @@ class Renderer {
             bool quit = false;
             uint64_t start = 0;
             while (quit == false) {
-                int window_width;
-                int window_height;
-                SDL_GetWindowSize(window_, &window_width, &window_height);
+                SDL_GetWindowSize(window_, &window_width_, &window_height_);
                 uint64_t last = start;
                 start = SDL_GetPerformanceCounter();
                 // Calculate delta time in seconds
@@ -105,25 +109,11 @@ class Renderer {
                             sprite_object->sprite_renderer.sprite
                                 .create_texture(renderer_);
                         }
-                        int object_width = (int)((sprite_renderer.sprite.width /
-                                                  camera_->camera.size) *
-                                                 DEFAULT_CAMERA_SIZE);
-                        int object_height =
-                            (int)((sprite_renderer.sprite.height /
-                                   camera_->camera.size) *
-                                  DEFAULT_CAMERA_SIZE);
-                        int object_x = (((object->transform.position.x /
-                                          camera_->camera.size) +
-                                         (window_width / 2)) -
-                                        camera_->transform.position.x) -
-                                       (object_width / 2);
-                        int object_y = (((object->transform.position.y /
-                                          camera_->camera.size) +
-                                         (window_height / 2)) -
-                                        camera_->transform.position.y) -
-                                       (object_height / 2);
-                        SDL_Rect rect = {object_x, object_y, object_width,
-                                         object_height};
+                        SDL_Rect rect = get_object_camera_position(
+                            sprite_renderer.sprite.width,
+                            sprite_renderer.sprite.height,
+                            object->transform.position, camera_->camera.size,
+                            camera_->transform.position);
                         SDL_RendererFlip flip = (SDL_RendererFlip)(
                             (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
                             (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));
@@ -137,9 +127,25 @@ class Renderer {
         }
     }
 
+    SDL_Rect get_object_camera_position(int width, int height, Vector3 position,
+                                        float camera_size,
+                                        Vector3 camera_position) const {
+        int object_width = (int)((width / camera_size) * DEFAULT_CAMERA_SIZE);
+        int object_height = (int)((height / camera_size) * DEFAULT_CAMERA_SIZE);
+        int object_x = (((position.x / camera_size) + (window_width_ / 2)) -
+                        camera_position.x) -
+                       (object_width / 2);
+        int object_y = (((position.y / camera_size) + (window_height_ / 2)) -
+                        camera_position.y) -
+                       (object_height / 2);
+        return {object_x, object_y, object_width, object_height};
+    }
+
    private:
     std::vector<Object*> objects_;
     Camera* camera_;
+    int window_width_;
+    int window_height_;
     bool has_camera_;
     RenderMode render_mode_;
     SDL_Renderer* renderer_;
@@ -151,8 +157,8 @@ class Renderer {
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
             window_ = SDL_CreateWindow(
                 "Valiant Engine", SDL_WINDOWPOS_UNDEFINED,
-                SDL_WINDOWPOS_UNDEFINED, DEFAULT_WINDOW_WIDTH,
-                DEFAULT_WINDOW_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+                SDL_WINDOWPOS_UNDEFINED, window_width_, window_height_,
+                SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
             renderer_ =
                 SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
             IMG_Init(IMG_INIT_PNG);

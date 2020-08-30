@@ -12,7 +12,8 @@ struct Vector3 {
     float y;
     float z;
 
-    Vector3() : x(0), y(0), z(0){};
+    Vector3(float new_x = 0, float new_y = 0, float new_z = 0)
+        : x(new_x), y(new_y), z(new_z){};
 };
 
 struct Transform {
