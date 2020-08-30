@@ -4,10 +4,11 @@
 #include "object.hpp"
 
 namespace valiant {
+const float DEFAULT_CAMERA_SIZE = 1.;
 class CameraComponent {
    public:
     float size;
-    CameraComponent(float new_size = 1.) : size(new_size) {}
+    CameraComponent(float new_size = DEFAULT_CAMERA_SIZE) : size(new_size) {}
 };
 class Camera {
    public:

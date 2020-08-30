@@ -3,7 +3,7 @@
 #include "../valiant/camera.hpp"
 #include "../valiant/renderer.hpp"
 
-TEST_CASE() {
+TEST_CASE("Camera methods") {
     class Camera : public valiant::Camera {
        public:
         Camera() : has_awake_(false), has_start_(false) {}

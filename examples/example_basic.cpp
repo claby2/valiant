@@ -1,8 +1,20 @@
 #include "../valiant/valiant.hpp"
 
+class Camera : public valiant::Camera {
+   public:
+    void update() override {
+        if (input.get_key("J")) {
+            camera.size += 0.1;
+        }
+        if (input.get_key("K")) {
+            camera.size -= camera.size > 0.1 ? 0.1 : 0;
+        }
+    }
+};
+
 class Player : public valiant::Object, public valiant::SpriteRenderer {
    public:
-    Player() : move_speed_(1), w_(false), a_(false), s_(false), d_(false) {}
+    Player() : move_speed_(150), w_(false), a_(false), s_(false), d_(false) {}
     void start() override {
         sprite_renderer.sprite = "examples/assets/sprite.png";
     }
@@ -41,14 +53,14 @@ class Player : public valiant::Object, public valiant::SpriteRenderer {
     }
 
    private:
-    const int move_speed_;
+    const float move_speed_;
     bool w_;
     bool a_;
     bool s_;
     bool d_;
 
     void move() {
-        int delta = move_speed_;
+        float delta = move_speed_ * time.delta_time;
         if (w_) {
             transform.position.y -= delta;
         }
@@ -67,6 +79,8 @@ class Player : public valiant::Object, public valiant::SpriteRenderer {
 int main() {
     valiant::Renderer renderer;
     Player player;
+    Camera camera;
     renderer.add_object(player);
+    renderer.add_camera(camera);
     renderer.run();
 }

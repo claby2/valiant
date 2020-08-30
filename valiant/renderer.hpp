@@ -67,6 +67,9 @@ class Renderer {
             bool quit = false;
             uint64_t start = 0;
             while (quit == false) {
+                int window_width;
+                int window_height;
+                SDL_GetWindowSize(window_, &window_width, &window_height);
                 uint64_t last = start;
                 start = SDL_GetPerformanceCounter();
                 // Calculate delta time in seconds
@@ -102,13 +105,25 @@ class Renderer {
                             sprite_object->sprite_renderer.sprite
                                 .create_texture(renderer_);
                         }
-                        SDL_Rect rect = {
-                            object->transform.position.x,
-                            object->transform.position.y,
-                            (int)(sprite_renderer.sprite.surface->w /
-                                  camera_->camera.size),
-                            (int)(sprite_renderer.sprite.surface->h /
-                                  camera_->camera.size)};
+                        int object_width = (int)((sprite_renderer.sprite.width /
+                                                  camera_->camera.size) *
+                                                 DEFAULT_CAMERA_SIZE);
+                        int object_height =
+                            (int)((sprite_renderer.sprite.height /
+                                   camera_->camera.size) *
+                                  DEFAULT_CAMERA_SIZE);
+                        int object_x = (((object->transform.position.x /
+                                          camera_->camera.size) +
+                                         (window_width / 2)) -
+                                        camera_->transform.position.x) -
+                                       (object_width / 2);
+                        int object_y = (((object->transform.position.y /
+                                          camera_->camera.size) +
+                                         (window_height / 2)) -
+                                        camera_->transform.position.y) -
+                                       (object_height / 2);
+                        SDL_Rect rect = {object_x, object_y, object_width,
+                                         object_height};
                         SDL_RendererFlip flip = (SDL_RendererFlip)(
                             (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
                             (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));

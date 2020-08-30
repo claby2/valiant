@@ -8,9 +8,9 @@
 
 namespace valiant {
 struct Vector3 {
-    int x;
-    int y;
-    int z;
+    float x;
+    float y;
+    float z;
 
     Vector3() : x(0), y(0), z(0){};
 };
