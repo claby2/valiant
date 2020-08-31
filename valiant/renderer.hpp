@@ -130,8 +130,10 @@ class Renderer {
     SDL_Rect get_object_camera_position(int width, int height, Vector3 position,
                                         float camera_size,
                                         Vector3 camera_position) const {
-        int object_width = (int)((width / camera_size) * DEFAULT_CAMERA_SIZE);
-        int object_height = (int)((height / camera_size) * DEFAULT_CAMERA_SIZE);
+        int object_width =
+            static_cast<int>((width / camera_size) * DEFAULT_CAMERA_SIZE);
+        int object_height =
+            static_cast<int>((height / camera_size) * DEFAULT_CAMERA_SIZE);
         int object_x = (((position.x / camera_size) + (window_width_ / 2)) -
                         camera_position.x) -
                        (object_width / 2);
