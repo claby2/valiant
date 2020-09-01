@@ -1,6 +1,8 @@
 #ifndef VALIANT_SPRITE_RENDERER_HPP
 #define VALIANT_SPRITE_RENDERER_HPP
 
+#define SDL_MAIN_HANDLED
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 

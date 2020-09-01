@@ -22,6 +22,17 @@ const int DEFAULT_WINDOW_HEIGHT = 480;
 
 enum class RenderMode { ENABLE, DISABLE };
 
+struct ObjectData {
+    int width;
+    int height;
+    Vector3 position;
+};
+
+struct CameraData {
+    float size;
+    Vector3 position;
+};
+
 class Renderer {
    public:
     Renderer(RenderMode render_mode = RenderMode::ENABLE)
@@ -109,11 +120,13 @@ class Renderer {
                             sprite_object->sprite_renderer.sprite
                                 .create_texture(renderer_);
                         }
-                        SDL_Rect rect = get_object_camera_position(
-                            sprite_renderer.sprite.width,
-                            sprite_renderer.sprite.height,
-                            object->transform.position, camera_->camera.size,
-                            camera_->transform.position);
+                        ObjectData object_data = {sprite_renderer.sprite.width,
+                                                  sprite_renderer.sprite.height,
+                                                  object->transform.position};
+                        CameraData camera_data = {camera_->camera.size,
+                                                  camera_->transform.position};
+                        SDL_Rect rect = get_object_camera_position(object_data,
+                                                                   camera_data);
                         SDL_RendererFlip flip = (SDL_RendererFlip)(
                             (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
                             (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));
@@ -127,20 +140,36 @@ class Renderer {
         }
     }
 
-    SDL_Rect get_object_camera_position(int width, int height, Vector3 position,
-                                        float camera_size,
-                                        Vector3 camera_position) const {
-        int object_width =
-            static_cast<int>((width / camera_size) * DEFAULT_CAMERA_SIZE);
-        int object_height =
-            static_cast<int>((height / camera_size) * DEFAULT_CAMERA_SIZE);
-        int object_x = (((position.x / camera_size) + (window_width_ / 2)) -
-                        camera_position.x) -
-                       (object_width / 2);
-        int object_y = (((position.y / camera_size) + (window_height_ / 2)) -
-                        camera_position.y) -
-                       (object_height / 2);
-        return {object_x, object_y, object_width, object_height};
+    // SDL_Rect get_object_camera_position(int width, int height, Vector3
+    // position,
+    //                                    float camera_size,
+    //                                    Vector3 camera_position) const {
+    //    int object_width =
+    //        static_cast<int>((width / camera_size) * DEFAULT_CAMERA_SIZE);
+    //    int object_height =
+    //        static_cast<int>((height / camera_size) * DEFAULT_CAMERA_SIZE);
+    //    int object_x = (((position.x / camera_size) + (window_width_ / 2)) -
+    //                    camera_position.x) -
+    //                   (object_width / 2);
+    //    int object_y = (((position.y / camera_size) + (window_height_ / 2)) -
+    //                    camera_position.y) -
+    //                   (object_height / 2);
+    //    return {object_x, object_y, object_width, object_height};
+    //
+
+    SDL_Rect get_object_camera_position(ObjectData object,
+                                        CameraData camera) const {
+        int width = static_cast<int>((object.width / camera.size) *
+                                     DEFAULT_CAMERA_SIZE);
+        int height = static_cast<int>((object.height / camera.size) *
+                                      DEFAULT_CAMERA_SIZE);
+        int x = (((object.position.x / camera.size) + (window_width_ / 2)) -
+                 camera.position.x) -
+                (width / 2);
+        int y = (((object.position.y / camera.size) + (window_height_ / 2)) -
+                 camera.position.y) -
+                (height / 2);
+        return {x, y, width, height};
     }
 
    private:
