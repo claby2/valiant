@@ -140,23 +140,6 @@ class Renderer {
         }
     }
 
-    // SDL_Rect get_object_camera_position(int width, int height, Vector3
-    // position,
-    //                                    float camera_size,
-    //                                    Vector3 camera_position) const {
-    //    int object_width =
-    //        static_cast<int>((width / camera_size) * DEFAULT_CAMERA_SIZE);
-    //    int object_height =
-    //        static_cast<int>((height / camera_size) * DEFAULT_CAMERA_SIZE);
-    //    int object_x = (((position.x / camera_size) + (window_width_ / 2)) -
-    //                    camera_position.x) -
-    //                   (object_width / 2);
-    //    int object_y = (((position.y / camera_size) + (window_height_ / 2)) -
-    //                    camera_position.y) -
-    //                   (object_height / 2);
-    //    return {object_x, object_y, object_width, object_height};
-    //
-
     SDL_Rect get_object_camera_position(ObjectData object,
                                         CameraData camera) const {
         int width = static_cast<int>((object.width / camera.size) *
