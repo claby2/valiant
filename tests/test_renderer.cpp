@@ -21,6 +21,19 @@ void test_object_camera_position(valiant::Renderer &renderer,
     REQUIRE(rect.h == expected_h);
 }
 
+TEST_CASE("Renderer invalid camera size exception") {
+    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::ObjectData object_data = {32, 64, {0, 0, 0}};
+    valiant::CameraData invalid_camera_data_1 = {0., {0, 0, 0}};
+    valiant::CameraData invalid_camera_data_2 = {-1., {0, 0, 0}};
+    REQUIRE_THROWS_WITH(
+        renderer.get_object_camera_position(object_data, invalid_camera_data_1),
+        "Invalid camera size: " + std::to_string(invalid_camera_data_1.size));
+    REQUIRE_THROWS_WITH(
+        renderer.get_object_camera_position(object_data, invalid_camera_data_2),
+        "Invalid camera size: " + std::to_string(invalid_camera_data_2.size));
+}
+
 TEST_CASE("Renderer camera positioning") {
     valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     SECTION("Center positioning") {

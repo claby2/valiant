@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include <string>
 #include <vector>
 
 #include "camera.hpp"
@@ -142,6 +143,11 @@ class Renderer {
 
     SDL_Rect get_object_camera_position(ObjectData object,
                                         CameraData camera) const {
+        if (camera.size <= 0) {
+            // Invalid camera size
+            throw ValiantError("Invalid camera size: " +
+                               std::to_string(camera.size));
+        }
         int width = static_cast<int>((object.width / camera.size) *
                                      DEFAULT_CAMERA_SIZE);
         int height = static_cast<int>((object.height / camera.size) *

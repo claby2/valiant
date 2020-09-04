@@ -2,6 +2,7 @@
 #define VALIANT_CAMERA_HPP
 
 #include "object.hpp"
+#include "time.hpp"
 
 namespace valiant {
 const float DEFAULT_CAMERA_SIZE = 1.;
