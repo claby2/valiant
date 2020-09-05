@@ -2,10 +2,11 @@
 
 #include <catch2/catch.hpp>
 
+#include "../valiant/color.hpp"
 #include "../valiant/object.hpp"
 #include "../valiant/renderer.hpp"
 
-void test_object_camera_position(valiant::Renderer &renderer,
+void test_object_camera_position(const valiant::Renderer &renderer,
                                  valiant::ObjectData object,
                                  valiant::CameraData camera) {
     SDL_Rect rect = renderer.get_object_camera_position(object, camera);
@@ -19,6 +20,36 @@ void test_object_camera_position(valiant::Renderer &renderer,
     REQUIRE(rect.y == expected_y);
     REQUIRE(rect.w == expected_w);
     REQUIRE(rect.h == expected_h);
+}
+
+TEST_CASE("Renderer background") {
+    SECTION("Default background color") {
+        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Color background_color = renderer.background_color();
+        REQUIRE(background_color.r == 0);
+        REQUIRE(background_color.g == 0);
+        REQUIRE(background_color.b == 0);
+        REQUIRE(background_color.a == 255);
+    }
+    SECTION("Set background color without color object") {
+        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        renderer.set_background_color(255, 255, 255, 0);
+        valiant::Color background_color = renderer.background_color();
+        REQUIRE(background_color.r == 255);
+        REQUIRE(background_color.g == 255);
+        REQUIRE(background_color.b == 255);
+        REQUIRE(background_color.a == 0);
+    }
+    SECTION("Set background color with color object") {
+        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Color new_background_color(255, 255, 255, 0);
+        renderer.set_background_color(new_background_color);
+        valiant::Color background_color = renderer.background_color();
+        REQUIRE(background_color.r == 255);
+        REQUIRE(background_color.g == 255);
+        REQUIRE(background_color.b == 255);
+        REQUIRE(background_color.a == 0);
+    }
 }
 
 TEST_CASE("Renderer invalid camera size exception") {
