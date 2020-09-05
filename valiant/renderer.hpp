@@ -6,12 +6,15 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
 #include "camera.hpp"
+#include "color.hpp"
 #include "error.hpp"
 #include "object.hpp"
+#include "shape.hpp"
 #include "sprite_renderer.hpp"
 #include "time.hpp"
 
@@ -37,7 +40,8 @@ struct CameraData {
 class Renderer {
    public:
     Renderer(RenderMode render_mode = RenderMode::ENABLE)
-        : camera_(nullptr),
+        : background_color_({0, 0, 0, 255}),
+          camera_(nullptr),
           window_width_(DEFAULT_WINDOW_WIDTH),
           window_height_(DEFAULT_WINDOW_HEIGHT),
           has_camera_(false),
@@ -62,6 +66,15 @@ class Renderer {
     inline int window_width() const { return window_width_; }
 
     inline int window_height() const { return window_height_; }
+
+    void set_background_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        background_color_.r = r;
+        background_color_.g = g;
+        background_color_.b = b;
+        background_color_.a = a;
+    }
+
+    void set_background_color(Color color) { background_color_ = color; }
 
     void run() {
         // Check if camera has been added
@@ -110,7 +123,13 @@ class Renderer {
                 camera_->time.set(delta);
                 camera_->update();
                 // Rendering
+                SDL_SetRenderDrawColor(renderer_, background_color_.r,
+                                       background_color_.g, background_color_.b,
+                                       background_color_.a);
                 SDL_RenderClear(renderer_);
+                // Get camera data
+                CameraData camera_data = {camera_->camera.size,
+                                          camera_->transform.position};
                 for (auto object : objects_) {
                     if (SpriteRenderer* sprite_object =
                             dynamic_cast<SpriteRenderer*>(object)) {
@@ -124,8 +143,6 @@ class Renderer {
                         ObjectData object_data = {sprite_renderer.sprite.width,
                                                   sprite_renderer.sprite.height,
                                                   object->transform.position};
-                        CameraData camera_data = {camera_->camera.size,
-                                                  camera_->transform.position};
                         SDL_Rect rect = get_object_camera_position(object_data,
                                                                    camera_data);
                         SDL_RendererFlip flip = (SDL_RendererFlip)(
@@ -134,6 +151,21 @@ class Renderer {
                         SDL_RenderCopyEx(renderer_,
                                          sprite_renderer.sprite.texture,
                                          nullptr, &rect, 0.0, nullptr, flip);
+                    } else if (Rectangle* rectangle_object =
+                                   dynamic_cast<Rectangle*>(object)) {
+                        // Object has rectangle component
+                        Shape shape = rectangle_object->shape;
+                        ObjectData object_data = {shape.width, shape.height,
+                                                  object->transform.position};
+                        SDL_Rect rect = get_object_camera_position(object_data,
+                                                                   camera_data);
+                        SDL_SetRenderDrawColor(renderer_, shape.color.r,
+                                               shape.color.g, shape.color.b,
+                                               shape.color.a);
+                        if (shape.fill == true) {
+                            SDL_RenderFillRect(renderer_, &rect);
+                        }
+                        SDL_RenderDrawRect(renderer_, &rect);
                     }
                 }
                 SDL_RenderPresent(renderer_);
@@ -163,6 +195,7 @@ class Renderer {
 
    private:
     std::vector<Object*> objects_;
+    Color background_color_;
     Camera* camera_;
     int window_width_;
     int window_height_;
