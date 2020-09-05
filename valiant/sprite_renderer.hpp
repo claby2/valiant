@@ -13,15 +13,14 @@
 namespace valiant {
 struct Sprite {
     std::string path;
-    int width;
-    int height;
+    int width{0};
+    int height{0};
     SDL_Surface* surface;
     SDL_Texture* texture;
 
-    Sprite()
-        : path(""), width(0), height(0), surface(nullptr), texture(nullptr) {}
+    Sprite() : path(""), surface(nullptr), texture(nullptr) {}
 
-    void operator=(const std::string& new_path) {
+    Sprite& operator=(const std::string& new_path) {
         path = new_path;
         surface = IMG_Load(path.c_str());
         if (!surface) {
@@ -32,6 +31,7 @@ struct Sprite {
         height = surface->h;
         // Reset texture
         texture = nullptr;
+        return *this;
     }
 
     void create_texture(SDL_Renderer* renderer) {
@@ -42,10 +42,10 @@ struct Sprite {
 
 struct SpriteRendererComponent {
     Sprite sprite;
-    bool flip_x;
-    bool flip_y;
+    bool flip_x{false};
+    bool flip_y{false};
 
-    SpriteRendererComponent() : sprite(), flip_x(false), flip_y(false) {}
+    SpriteRendererComponent() : sprite() {}
 };
 
 class SpriteRenderer {

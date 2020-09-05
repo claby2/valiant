@@ -10,25 +10,26 @@
 #include "error.hpp"
 
 namespace valiant {
-namespace {
 enum class EventType { KEYDOWN, KEY, KEYUP };
-}
 
 class Input {
    public:
     SDL_Event event;
-    bool get_key_down(const std::string &key) const {
+
+    auto get_key_down(const std::string &key) const -> bool {
         return query_key(key, EventType::KEYDOWN);
     }
-    bool get_key(const std::string &key) const {
+
+    auto get_key(const std::string &key) const -> bool {
         return query_key(key, EventType::KEY);
     }
-    bool get_key_up(const std::string &key) const {
+
+    auto get_key_up(const std::string &key) const -> bool {
         return query_key(key, EventType::KEYUP);
     }
 
    private:
-    bool query_key(std::string key, EventType event_type) const {
+    auto query_key(std::string key, EventType event_type) const -> bool {
         SDL_Keycode key_code = SDL_GetKeyFromName(key.c_str());
         if (key_code != SDLK_UNKNOWN) {
             bool condition;

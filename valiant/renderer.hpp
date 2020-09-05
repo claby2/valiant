@@ -19,10 +19,9 @@
 #include "time.hpp"
 
 namespace valiant {
-namespace {
 const int DEFAULT_WINDOW_WIDTH = 640;
 const int DEFAULT_WINDOW_HEIGHT = 480;
-}  // namespace
+const Color DEFAULT_BACKGROUND_COLOR = {0, 0, 0, 255};
 
 enum class RenderMode { ENABLE, DISABLE };
 
@@ -39,8 +38,8 @@ struct CameraData {
 
 class Renderer {
    public:
-    Renderer(RenderMode render_mode = RenderMode::ENABLE)
-        : background_color_({0, 0, 0, 255}),
+    explicit Renderer(RenderMode render_mode = RenderMode::ENABLE)
+        : background_color_(DEFAULT_BACKGROUND_COLOR),
           camera_(nullptr),
           window_width_(DEFAULT_WINDOW_WIDTH),
           window_height_(DEFAULT_WINDOW_HEIGHT),
@@ -53,6 +52,17 @@ class Renderer {
 
     ~Renderer() { close_sdl(); }
 
+    Renderer(const Renderer& renderer)
+        : objects_(renderer.objects_),
+          background_color_(renderer.background_color_),
+          camera_(renderer.camera_),
+          window_width_(renderer.window_width_),
+          window_height_(renderer.window_height_),
+          has_camera_(renderer.has_camera_),
+          render_mode_(renderer.render_mode_),
+          renderer_(renderer.renderer_),
+          window_(renderer.window_) {}
+
     template <typename T>
     inline void add_object(T& object) {
         objects_.push_back(&object);
@@ -63,11 +73,11 @@ class Renderer {
         camera_ = &camera;
     }
 
-    inline int window_width() const { return window_width_; }
+    auto window_width() const -> int { return window_width_; }
 
-    inline int window_height() const { return window_height_; }
+    auto window_height() const -> int { return window_height_; }
 
-    inline Color background_color() const { return background_color_; }
+    auto background_color() const -> Color { return background_color_; }
 
     void set_background_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
         background_color_.r = r;
@@ -81,7 +91,7 @@ class Renderer {
     void run() {
         // Check if camera has been added
         Camera new_camera;
-        if (has_camera_ == false) {
+        if (!has_camera_) {
             // Create a camera as no camera has been added
             camera_ = &new_camera;
         }
@@ -99,7 +109,7 @@ class Renderer {
             SDL_Event event;
             bool quit = false;
             uint64_t start = 0;
-            while (quit == false) {
+            while (!quit) {
                 SDL_GetWindowSize(window_, &window_width_, &window_height_);
                 uint64_t last = start;
                 start = SDL_GetPerformanceCounter();
@@ -175,8 +185,8 @@ class Renderer {
         }
     }
 
-    SDL_Rect get_object_camera_position(ObjectData object,
-                                        CameraData camera) const {
+    auto get_object_camera_position(ObjectData object, CameraData camera) const
+        -> SDL_Rect {
         if (camera.size <= 0) {
             // Invalid camera size
             throw ValiantError("Invalid camera size: " +
@@ -186,11 +196,13 @@ class Renderer {
                                      DEFAULT_CAMERA_SIZE);
         int height = static_cast<int>((object.height / camera.size) *
                                       DEFAULT_CAMERA_SIZE);
-        int x = (((object.position.x / camera.size) + (window_width_ / 2)) -
-                 camera.position.x) -
+        int x = static_cast<int>(
+                    ((object.position.x / camera.size) + (window_width_ / 2)) -
+                    camera.position.x) -
                 (width / 2);
-        int y = (((object.position.y / camera.size) + (window_height_ / 2)) -
-                 camera.position.y) -
+        int y = static_cast<int>(
+                    ((object.position.y / camera.size) + (window_height_ / 2)) -
+                    camera.position.y) -
                 (height / 2);
         return {x, y, width, height};
     }
@@ -198,10 +210,10 @@ class Renderer {
    private:
     std::vector<Object*> objects_;
     Color background_color_;
-    Camera* camera_;
+    Camera* camera_{nullptr};
     int window_width_;
     int window_height_;
-    bool has_camera_;
+    bool has_camera_{false};
     RenderMode render_mode_;
     SDL_Renderer* renderer_;
     SDL_Window* window_;
