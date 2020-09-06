@@ -4,7 +4,23 @@
 #include "../valiant/object.hpp"
 #include "../valiant/renderer.hpp"
 
-TEST_CASE("Object creation") {
+TEST_CASE("Object tagging") {
+    class Player : public valiant::Object {
+       public:
+        void start() override { tag = "player"; }
+    };
+    Player player;
+    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    std::string default_player_tag = player.tag;
+    renderer.add_object(player);
+    renderer.run();
+    std::string new_player_tag = player.tag;
+    // Test default tag
+    REQUIRE(default_player_tag == "untagged");
+    // Test new tag value after start method execution
+    REQUIRE(new_player_tag == "player");
+}
+TEST_CASE("Object method execution") {
     class Player : public valiant::Object {
        public:
         Player() : awake_count_(0), start_count_(0) {}

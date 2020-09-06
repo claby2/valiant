@@ -18,6 +18,7 @@ class Camera {
     Transform transform;
     Input input;
     Time time;
+    std::string tag = "untagged";
     virtual void awake() {}
     virtual void start() {}
     virtual void update() {}
