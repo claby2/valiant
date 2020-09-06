@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "camera.hpp"
+#include "collider.hpp"
 #include "color.hpp"
 #include "error.hpp"
 #include "object.hpp"
@@ -59,6 +60,8 @@ class Renderer {
 
     Renderer(const Renderer& renderer)
         : objects_(renderer.objects_),
+          collider_objects_(renderer.collider_objects_),
+          collision_matrix_(renderer.collision_matrix_),
           background_color_(renderer.background_color_),
           camera_(renderer.camera_),
           window_width_(renderer.window_width_),
@@ -94,6 +97,7 @@ class Renderer {
     void set_background_color(Color color) { background_color_ = color; }
 
     void run() {
+        fill_collider_objects();
         // Check if camera has been added
         Camera new_camera;
         if (!has_camera_) {
@@ -157,11 +161,8 @@ class Renderer {
                             sprite_object->sprite_renderer.sprite
                                 .create_texture(renderer_);
                         }
-                        ObjectData object_data = {sprite_renderer.sprite.width,
-                                                  sprite_renderer.sprite.height,
-                                                  object->transform.position};
-                        SDL_Rect rect = get_object_camera_position(object_data,
-                                                                   camera_data);
+                        SDL_Rect rect = get_object_camera_position(
+                            get_object_data(object), camera_data);
                         SDL_RendererFlip flip = (SDL_RendererFlip)(
                             (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
                             (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));
@@ -172,10 +173,8 @@ class Renderer {
                                    dynamic_cast<Rectangle*>(object)) {
                         // Object has rectangle component
                         Shape shape = rectangle_object->shape;
-                        ObjectData object_data = {shape.width, shape.height,
-                                                  object->transform.position};
-                        SDL_Rect rect = get_object_camera_position(object_data,
-                                                                   camera_data);
+                        SDL_Rect rect = get_object_camera_position(
+                            get_object_data(object), camera_data);
                         SDL_SetRenderDrawColor(renderer_, shape.color.r,
                                                shape.color.g, shape.color.b,
                                                shape.color.a);
@@ -185,6 +184,7 @@ class Renderer {
                         SDL_RenderDrawRect(renderer_, &rect);
                     }
                 }
+                process_collisions(camera_data);
                 SDL_RenderPresent(renderer_);
             }
         }
@@ -212,8 +212,98 @@ class Renderer {
         return {x, y, width, height};
     }
 
+    void process_collisions(CameraData camera) {
+        for (size_t i = 0; i < collider_objects_.size(); ++i) {
+            Object* object_1 = collider_objects_[i];
+            Collider* collider_1 = dynamic_cast<Collider*>(object_1);
+            SDL_Rect object_1_rect =
+                get_object_camera_position(get_object_data(object_1), camera);
+            for (size_t j = i + 1; j < collider_objects_.size(); ++j) {
+                Object* object_2 = collider_objects_[j];
+                Collider* collider_2 = dynamic_cast<Collider*>(object_2);
+                SDL_Rect object_2_rect = get_object_camera_position(
+                    get_object_data(object_2), camera);
+                if ((!collider_1->collider.enabled ||
+                     !collider_2->collider.enabled) ||
+                    (!is_colliding(object_1_rect, object_2_rect))) {
+                    if (collision_matrix_[i][j]) {
+                        // Object at i and j were previously colliding. Execute
+                        // exit collision method
+                        collider_1->on_collision_exit(
+                            get_collision_from_object(object_1));
+                        collider_2->on_collision_exit(
+                            get_collision_from_object(object_2));
+                    }
+                    collision_matrix_[i][j] = false;
+                } else {
+                    if (collision_matrix_[i][j]) {
+                        // Object at i and j previous collided before and
+                        // are right colliding right now
+                        collider_1->on_collision_stay(
+                            get_collision_from_object(object_1));
+                        collider_2->on_collision_stay(
+                            get_collision_from_object(object_2));
+                    } else {
+                        // Object at i and j were not colliding previously,
+                        // but are colliding right now
+                        collider_1->on_collision_enter(
+                            get_collision_from_object(object_1));
+                        collider_2->on_collision_enter(
+                            get_collision_from_object(object_2));
+                        collision_matrix_[i][j] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    static bool is_colliding(SDL_Rect& object_1, SDL_Rect& object_2) {
+        return SDL_HasIntersection(&object_1, &object_2);
+    }
+
+    static ObjectData get_object_data(Object* object) {
+        // Assume width and height as 0
+        ObjectData object_data = {0, 0, object->transform.position};
+        if (SpriteRenderer* sprite_renderer =
+                dynamic_cast<SpriteRenderer*>(object)) {
+            object_data.width = sprite_renderer->sprite_renderer.sprite.width;
+            object_data.height = sprite_renderer->sprite_renderer.sprite.height;
+        } else if (Rectangle* rectangle = dynamic_cast<Rectangle*>(object)) {
+            object_data.width = rectangle->shape.width;
+            object_data.height = rectangle->shape.height;
+        }
+        return object_data;
+    }
+
+    static inline Collision get_collision_from_object(Object* object) {
+        return {object->transform, object->tag};
+    }
+
+    void fill_collider_objects() {
+        for (auto object : objects_) {
+            Collider* collider_object = dynamic_cast<Collider*>(object);
+            if (collider_object) {
+                collider_objects_.push_back(object);
+            }
+        }
+        // Initialize collision matrix
+        for (size_t i = 0; i < collider_objects_.size(); ++i) {
+            std::vector<bool> row;
+            for (size_t j = 0; j < collider_objects_.size(); ++j) {
+                row.push_back(false);
+            }
+            collision_matrix_.push_back(row);
+        }
+    }
+
+    inline size_t collider_objects_size() const {
+        return collider_objects_.size();
+    }
+
    private:
     std::vector<Object*> objects_;
+    std::vector<Object*> collider_objects_;
+    std::vector<std::vector<bool>> collision_matrix_;
     Color background_color_;
     Camera* camera_{nullptr};
     int window_width_;

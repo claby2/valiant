@@ -2,6 +2,7 @@
 #define VALIANT_HPP
 
 #include "camera.hpp"
+#include "collider.hpp"
 #include "color.hpp"
 #include "error.hpp"
 #include "input.hpp"

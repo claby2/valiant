@@ -15,7 +15,8 @@ if(Catch2_FOUND)
       "tests/test_time.cpp"
       "tests/test_renderer.cpp"
       "tests/test_color.cpp"
-      "tests/test_shape.cpp")
+      "tests/test_shape.cpp"
+      "tests/test_collider.cpp")
   add_executable(test ${TESTS})
   target_link_libraries(test Catch2::Catch2)
 endif()
@@ -23,3 +24,4 @@ endif()
 add_executable(example_basic "examples/example_basic.cpp")
 add_executable(example_camera "examples/example_camera.cpp")
 add_executable(example_rectangle "examples/example_rectangle.cpp")
+add_executable(example_collider "examples/example_collider.cpp")
