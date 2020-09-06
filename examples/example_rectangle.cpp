@@ -3,8 +3,8 @@
 class RectangleObject1 : public valiant::Object, public valiant::Rectangle {
    public:
     void start() override {
-        shape.width = 20;
-        shape.height = 10;
+        shape.width = 50;
+        shape.height = 25;
         shape.color.r = 0;
         shape.color.g = 255;
         shape.color.b = 0;
@@ -15,13 +15,13 @@ class RectangleObject1 : public valiant::Object, public valiant::Rectangle {
 class RectangleObject2 : public valiant::Object, public valiant::Rectangle {
    public:
     void start() override {
-        shape.width = 50;
+        shape.width = 100;
         shape.height = 50;
         shape.color.r = 255;
         shape.color.g = 0;
         shape.color.b = 0;
         shape.color.a = 255;
-        shape.fill = false;
+        transform.position.x = 100;
     }
 };
 

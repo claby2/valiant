@@ -10,16 +10,24 @@ void test_object_camera_position(const valiant::Renderer &renderer,
                                  valiant::ObjectData object,
                                  valiant::CameraData camera) {
     SDL_Rect rect = renderer.get_object_camera_position(object, camera);
-    int expected_x =
-        (renderer.window_width() / 2) - (object.width / (2 * camera.size));
-    int expected_y =
-        (renderer.window_height() / 2) - (object.height / (2 * camera.size));
+    int expected_x = (valiant::LOGICAL_WINDOW_WIDTH / 2) -
+                     (object.width / (2 * camera.size));
+    int expected_y = (valiant::LOGICAL_WINDOW_HEIGHT / 2) -
+                     (object.height / (2 * camera.size));
     int expected_w = (object.width / camera.size);
     int expected_h = (object.height / camera.size);
     REQUIRE(rect.x == expected_x);
     REQUIRE(rect.y == expected_y);
     REQUIRE(rect.w == expected_w);
     REQUIRE(rect.h == expected_h);
+}
+
+TEST_CASE("Renderer default window dimensions") {
+    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    int renderer_width = renderer.window_width();
+    int renderer_height = renderer.window_height();
+    REQUIRE(renderer_width == valiant::DEFAULT_WINDOW_WIDTH);
+    REQUIRE(renderer_height == valiant::DEFAULT_WINDOW_HEIGHT);
 }
 
 TEST_CASE("Renderer background") {

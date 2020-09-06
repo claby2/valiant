@@ -19,8 +19,13 @@
 #include "time.hpp"
 
 namespace valiant {
+// Default dimensions represent window dimensions on start
 const int DEFAULT_WINDOW_WIDTH = 640;
 const int DEFAULT_WINDOW_HEIGHT = 480;
+// Logical dimensions represent device independent resolution for rendering
+const int LOGICAL_WINDOW_WIDTH = 1920;
+const int LOGICAL_WINDOW_HEIGHT = 1080;
+
 const Color DEFAULT_BACKGROUND_COLOR = {0, 0, 0, 255};
 
 enum class RenderMode { ENABLE, DISABLE };
@@ -185,24 +190,24 @@ class Renderer {
         }
     }
 
-    auto get_object_camera_position(ObjectData object, CameraData camera) const
+    static auto get_object_camera_position(ObjectData object, CameraData camera)
         -> SDL_Rect {
         if (camera.size <= 0) {
             // Invalid camera size
             throw ValiantError("Invalid camera size: " +
                                std::to_string(camera.size));
         }
-        int width = static_cast<int>((object.width / camera.size) *
-                                     DEFAULT_CAMERA_SIZE);
-        int height = static_cast<int>((object.height / camera.size) *
-                                      DEFAULT_CAMERA_SIZE);
-        int x = static_cast<int>(
-                    ((object.position.x / camera.size) + (window_width_ / 2)) -
-                    camera.position.x) -
+        int width = static_cast<int>(
+            ((object.width / camera.size) * DEFAULT_CAMERA_SIZE));
+        int height = static_cast<int>(
+            ((object.height / camera.size) * DEFAULT_CAMERA_SIZE));
+        int x = static_cast<int>(((object.position.x / camera.size) +
+                                  (LOGICAL_WINDOW_WIDTH / 2)) -
+                                 camera.position.x) -
                 (width / 2);
-        int y = static_cast<int>(
-                    ((object.position.y / camera.size) + (window_height_ / 2)) -
-                    camera.position.y) -
+        int y = static_cast<int>(((object.position.y / camera.size) +
+                                  (LOGICAL_WINDOW_HEIGHT / 2)) -
+                                 camera.position.y) -
                 (height / 2);
         return {x, y, width, height};
     }
@@ -221,6 +226,7 @@ class Renderer {
     void initialize_sdl() {
         if (render_mode_ == RenderMode::ENABLE) {
             SDL_Init(SDL_INIT_VIDEO);
+            IMG_Init(IMG_INIT_PNG);
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
             window_ = SDL_CreateWindow(
                 "Valiant Engine", SDL_WINDOWPOS_UNDEFINED,
@@ -228,7 +234,8 @@ class Renderer {
                 SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
             renderer_ =
                 SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
-            IMG_Init(IMG_INIT_PNG);
+            SDL_RenderSetLogicalSize(renderer_, LOGICAL_WINDOW_WIDTH,
+                                     LOGICAL_WINDOW_HEIGHT);
         }
     }
 
