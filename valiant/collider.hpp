@@ -9,6 +9,10 @@ namespace valiant {
 struct Collision {
     Transform transform;
     std::string tag;
+
+    bool operator==(const Collision &collision) const {
+        return (transform == collision.transform && tag == collision.tag);
+    }
 };
 
 struct ColliderComponent {

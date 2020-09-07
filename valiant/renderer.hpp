@@ -35,11 +35,20 @@ struct ObjectData {
     int width;
     int height;
     Vector3 position;
+
+    bool operator==(const ObjectData& object_data) const {
+        return (width == object_data.width && height == object_data.height &&
+                position == object_data.position);
+    }
 };
 
 struct CameraData {
     float size;
     Vector3 position;
+
+    bool operator==(const CameraData& camera_data) const {
+        return (size == camera_data.size && position == camera_data.position);
+    }
 };
 
 class Renderer {

@@ -73,14 +73,13 @@ TEST_CASE("Object transform") {
     Player player;
     valiant::Vector3 position = player.transform.position;
     // Test default position values
-    REQUIRE(position.x == 0);
-    REQUIRE(position.y == 0);
-    REQUIRE(position.z == 0);
+    valiant::Vector3 expected_position = {0, 0, 0};
+    REQUIRE(position == expected_position);
     valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     renderer.add_object(player);
     renderer.run();
     position = player.transform.position;
-    REQUIRE(position.x == 1);
-    REQUIRE(position.y == 2);
-    REQUIRE(position.z == 3);
+    // Test position values after start method has been run
+    expected_position = {1, 2, 3};
+    REQUIRE(position == expected_position);
 }

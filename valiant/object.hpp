@@ -14,10 +14,18 @@ struct Vector3 {
 
     Vector3(float new_x = 0, float new_y = 0, float new_z = 0)
         : x(new_x), y(new_y), z(new_z){};
+
+    bool operator==(const Vector3& vector3) const {
+        return (x == vector3.x && y == vector3.y && z == vector3.z);
+    }
 };
 
 struct Transform {
     Vector3 position;
+
+    bool operator==(const Transform& transform) const {
+        return (position == transform.position);
+    }
 };
 
 class Object {

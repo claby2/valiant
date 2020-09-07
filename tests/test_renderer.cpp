@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 #include <cstdint>
 
+#include "../valiant/collider.hpp"
 #include "../valiant/color.hpp"
 #include "../valiant/object.hpp"
 #include "../valiant/renderer.hpp"
@@ -35,29 +36,24 @@ TEST_CASE("Renderer background") {
     SECTION("Default background color") {
         valiant::Renderer renderer(valiant::RenderMode::DISABLE);
         valiant::Color background_color = renderer.background_color();
-        REQUIRE(background_color.r == 0);
-        REQUIRE(background_color.g == 0);
-        REQUIRE(background_color.b == 0);
-        REQUIRE(background_color.a == 255);
+        valiant::Color expected_color = {0, 0, 0, 255};
+        REQUIRE(background_color == expected_color);
     }
     SECTION("Set background color without color object") {
         valiant::Renderer renderer(valiant::RenderMode::DISABLE);
-        renderer.set_background_color(255, 255, 255, 0);
+        valiant::Color expected_color = {255, 255, 255, 0};
+        renderer.set_background_color(expected_color.r, expected_color.g,
+                                      expected_color.b, expected_color.a);
         valiant::Color background_color = renderer.background_color();
-        REQUIRE(background_color.r == 255);
-        REQUIRE(background_color.g == 255);
-        REQUIRE(background_color.b == 255);
-        REQUIRE(background_color.a == 0);
+        REQUIRE(background_color == expected_color);
     }
     SECTION("Set background color with color object") {
         valiant::Renderer renderer(valiant::RenderMode::DISABLE);
-        valiant::Color new_background_color(255, 255, 255, 0);
+        valiant::Color expected_color = {255, 255, 255, 0};
+        valiant::Color new_background_color(expected_color);
         renderer.set_background_color(new_background_color);
         valiant::Color background_color = renderer.background_color();
-        REQUIRE(background_color.r == 255);
-        REQUIRE(background_color.g == 255);
-        REQUIRE(background_color.b == 255);
-        REQUIRE(background_color.a == 0);
+        REQUIRE(background_color == expected_color);
     }
 }
 
@@ -94,21 +90,11 @@ TEST_CASE("Renderer camera positioning") {
 }
 
 TEST_CASE("Renderer collision processing") {
-    class Player : public valiant::Object,
-                   public valiant::Rectangle,
-                   public valiant::Collider {
+    class ColliderObject : public valiant::Collider {
        public:
         bool has_collided{false};
         bool has_stay{false};
         bool has_exit{false};
-
-        void start() override {
-            transform.position.x = 0;
-            transform.position.y = 0;
-            transform.position.z = 0;
-            shape.width = 50;
-            shape.height = 50;
-        }
 
         void on_collision_enter(const valiant::Collision &collision) override {
             has_collided = true;
@@ -122,14 +108,22 @@ TEST_CASE("Renderer collision processing") {
             has_exit = true;
         }
     };
+    class Player : public valiant::Object,
+                   public valiant::Rectangle,
+                   public ColliderObject {
+       public:
+        void start() override {
+            transform.position.x = 0;
+            transform.position.y = 0;
+            transform.position.z = 0;
+            shape.width = 50;
+            shape.height = 50;
+        }
+    };
     class Enemy : public valiant::Object,
                   public valiant::Rectangle,
-                  public valiant::Collider {
+                  public ColliderObject {
        public:
-        bool has_collided{false};
-        bool has_stay{false};
-        bool has_exit{false};
-
         void start() override {
             transform.position.x = 100;
             transform.position.y = 100;
@@ -141,18 +135,6 @@ TEST_CASE("Renderer collision processing") {
         void move_towards() { transform.position = {0, 0, 0}; }
 
         void move_away() { transform.position = {100, 100, 100}; }
-
-        void on_collision_enter(const valiant::Collision &collision) override {
-            has_collided = true;
-        }
-
-        void on_collision_stay(const valiant::Collision &collision) override {
-            has_stay = true;
-        }
-
-        void on_collision_exit(const valiant::Collision &collision) override {
-            has_exit = true;
-        }
     };
     valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     valiant::CameraData camera_data = {1., {0, 0, 0}};
@@ -227,16 +209,9 @@ TEST_CASE("Renderer get object data") {
             valiant::Renderer::get_object_data(&sprite_object);
         valiant::ObjectData rectangle_object_data =
             valiant::Renderer::get_object_data(&rectangle_object);
-        REQUIRE(sprite_object_data.width == 0);
-        REQUIRE(sprite_object_data.height == 0);
-        REQUIRE(sprite_object_data.position.x == 0);
-        REQUIRE(sprite_object_data.position.y == 0);
-        REQUIRE(sprite_object_data.position.z == 0);
-        REQUIRE(rectangle_object_data.width == 0);
-        REQUIRE(rectangle_object_data.height == 0);
-        REQUIRE(rectangle_object_data.position.x == 0);
-        REQUIRE(rectangle_object_data.position.y == 0);
-        REQUIRE(rectangle_object_data.position.z == 0);
+        valiant::ObjectData expected_object_data = {0, 0, {0, 0, 0}};
+        REQUIRE(sprite_object_data == expected_object_data);
+        REQUIRE(rectangle_object_data == expected_object_data);
     }
     SECTION("Changed data") {
         valiant::Renderer renderer(valiant::RenderMode::DISABLE);
@@ -249,16 +224,9 @@ TEST_CASE("Renderer get object data") {
             valiant::Renderer::get_object_data(&sprite_object);
         valiant::ObjectData rectangle_object_data =
             valiant::Renderer::get_object_data(&rectangle_object);
-        REQUIRE(sprite_object_data.width == 1);
-        REQUIRE(sprite_object_data.height == 1);
-        REQUIRE(sprite_object_data.position.x == 1);
-        REQUIRE(sprite_object_data.position.y == 1);
-        REQUIRE(sprite_object_data.position.z == 1);
-        REQUIRE(rectangle_object_data.width == 1);
-        REQUIRE(rectangle_object_data.height == 1);
-        REQUIRE(rectangle_object_data.position.x == 1);
-        REQUIRE(rectangle_object_data.position.y == 1);
-        REQUIRE(rectangle_object_data.position.z == 1);
+        valiant::ObjectData expected_object_data = {1, 1, {1, 1, 1}};
+        REQUIRE(sprite_object_data == expected_object_data);
+        REQUIRE(rectangle_object_data == expected_object_data);
     }
 }
 
@@ -271,15 +239,11 @@ TEST_CASE("Renderer get collision from object") {
     valiant::Collision collision_2 =
         valiant::Renderer::get_collision_from_object(&object);
     // Test collision before changes (default values)
-    REQUIRE(collision_1.transform.position.x == 0);
-    REQUIRE(collision_1.transform.position.y == 0);
-    REQUIRE(collision_1.transform.position.z == 0);
-    REQUIRE(collision_1.tag == "untagged");
+    valiant::Collision expected_collision_1 = {{{0, 0, 0}}, "untagged"};
+    REQUIRE(collision_1 == expected_collision_1);
     // Test collision after changes
-    REQUIRE(collision_2.transform.position.x == 1);
-    REQUIRE(collision_2.transform.position.y == 1);
-    REQUIRE(collision_2.transform.position.z == 1);
-    REQUIRE(collision_2.tag == "tagged");
+    valiant::Collision expected_collision_2 = {{{1, 1, 1}}, "tagged"};
+    REQUIRE(collision_2 == expected_collision_2);
 }
 
 TEST_CASE("Renderer collider object registration") {
