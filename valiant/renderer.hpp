@@ -297,10 +297,7 @@ class Renderer {
         }
         // Initialize collision matrix
         for (size_t i = 0; i < collider_objects_.size(); ++i) {
-            std::vector<bool> row;
-            for (size_t j = 0; j < collider_objects_.size(); ++j) {
-                row.push_back(false);
-            }
+            std::vector<bool> row(collider_objects_.size(), false);
             collision_matrix_.push_back(row);
         }
     }
