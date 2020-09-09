@@ -1,7 +1,10 @@
 #ifndef VALIANT_COLLIDER_HPP
 #define VALIANT_COLLIDER_HPP
 
+#include <SDL2/SDL.h>
+
 #include <string>
+#include <vector>
 
 #include "object.hpp"
 
@@ -10,7 +13,7 @@ struct Collision {
     Transform transform;
     std::string tag;
 
-    bool operator==(const Collision &collision) const {
+    bool operator==(const Collision& collision) const {
         return (transform == collision.transform && tag == collision.tag);
     }
 };
@@ -25,9 +28,9 @@ class Collider {
    public:
     ColliderComponent collider;
 
-    virtual void on_collision_enter(const Collision &collision) {}
-    virtual void on_collision_stay(const Collision &collision) {}
-    virtual void on_collision_exit(const Collision &collision) {}
+    virtual void on_collision_enter(const Collision& collision) {}
+    virtual void on_collision_stay(const Collision& collision) {}
+    virtual void on_collision_exit(const Collision& collision) {}
 };
 }  // namespace valiant
 #endif

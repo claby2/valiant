@@ -5,6 +5,15 @@
 #include "time.hpp"
 
 namespace valiant {
+struct CameraData {
+    float size;
+    Vector3 position;
+
+    bool operator==(const CameraData& camera_data) const {
+        return (size == camera_data.size && position == camera_data.position);
+    }
+};
+
 const float DEFAULT_CAMERA_SIZE = 1.;
 class CameraComponent {
    public:

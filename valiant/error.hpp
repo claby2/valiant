@@ -8,6 +8,6 @@ namespace valiant {
 struct ValiantError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
-};  // namespace valiant
+}  // namespace valiant
 
 #endif

@@ -38,6 +38,17 @@ class Object {
     virtual void start() {}
     virtual void update() {}
 };
+
+struct ObjectData {
+    int width;
+    int height;
+    Vector3 position;
+
+    bool operator==(const ObjectData& object_data) const {
+        return (width == object_data.width && height == object_data.height &&
+                position == object_data.position);
+    }
+};
 }  // namespace valiant
 
 #endif

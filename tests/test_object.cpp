@@ -3,6 +3,8 @@
 
 #include "../valiant/object.hpp"
 #include "../valiant/renderer.hpp"
+#include "../valiant/shape.hpp"
+#include "../valiant/sprite_renderer.hpp"
 
 TEST_CASE("Object tagging") {
     class Player : public valiant::Object {
@@ -82,4 +84,50 @@ TEST_CASE("Object transform") {
     // Test position values after start method has been run
     expected_position = {1, 2, 3};
     REQUIRE(position == expected_position);
+}
+
+TEST_CASE("Object get object data") {
+    class SpriteObject : public valiant::Object,
+                         public valiant::SpriteRenderer {
+       public:
+        void start() override {
+            sprite_renderer.sprite.width = 1;
+            sprite_renderer.sprite.height = 1;
+            transform.position = {1, 1, 1};
+        }
+    };
+    class RectangleObject : public valiant::Object, public valiant::Rectangle {
+       public:
+        void start() override {
+            shape.width = 1;
+            shape.height = 1;
+            transform.position = {1, 1, 1};
+        }
+    };
+    SECTION("Original data") {
+        SpriteObject sprite_object;
+        RectangleObject rectangle_object;
+        valiant::ObjectData sprite_object_data =
+            valiant::ObjectManager::get_object_data(&sprite_object);
+        valiant::ObjectData rectangle_object_data =
+            valiant::ObjectManager::get_object_data(&rectangle_object);
+        valiant::ObjectData expected_object_data = {0, 0, {0, 0, 0}};
+        REQUIRE(sprite_object_data == expected_object_data);
+        REQUIRE(rectangle_object_data == expected_object_data);
+    }
+    SECTION("Changed data") {
+        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        SpriteObject sprite_object;
+        RectangleObject rectangle_object;
+        renderer.add_object(sprite_object);
+        renderer.add_object(rectangle_object);
+        renderer.run();
+        valiant::ObjectData sprite_object_data =
+            valiant::ObjectManager::get_object_data(&sprite_object);
+        valiant::ObjectData rectangle_object_data =
+            valiant::ObjectManager::get_object_data(&rectangle_object);
+        valiant::ObjectData expected_object_data = {1, 1, {1, 1, 1}};
+        REQUIRE(sprite_object_data == expected_object_data);
+        REQUIRE(rectangle_object_data == expected_object_data);
+    }
 }

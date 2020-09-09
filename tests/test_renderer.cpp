@@ -11,7 +11,8 @@
 void test_object_camera_position(const valiant::Renderer &renderer,
                                  valiant::ObjectData object,
                                  valiant::CameraData camera) {
-    SDL_Rect rect = renderer.get_object_camera_position(object, camera);
+    SDL_Rect rect =
+        valiant::ObjectManager::get_object_camera_position(object, camera);
     int expected_x = (valiant::LOGICAL_WINDOW_WIDTH / 2) -
                      (object.width / (2 * camera.size));
     int expected_y = (valiant::LOGICAL_WINDOW_HEIGHT / 2) -
@@ -63,10 +64,12 @@ TEST_CASE("Renderer invalid camera size exception") {
     valiant::CameraData invalid_camera_data_1 = {0., {0, 0, 0}};
     valiant::CameraData invalid_camera_data_2 = {-1., {0, 0, 0}};
     REQUIRE_THROWS_WITH(
-        renderer.get_object_camera_position(object_data, invalid_camera_data_1),
+        valiant::ObjectManager::get_object_camera_position(
+            object_data, invalid_camera_data_1),
         "Invalid camera size: " + std::to_string(invalid_camera_data_1.size));
     REQUIRE_THROWS_WITH(
-        renderer.get_object_camera_position(object_data, invalid_camera_data_2),
+        valiant::ObjectManager::get_object_camera_position(
+            object_data, invalid_camera_data_2),
         "Invalid camera size: " + std::to_string(invalid_camera_data_2.size));
 }
 
@@ -136,6 +139,7 @@ TEST_CASE("Renderer collision processing") {
 
         void move_away() { transform.position = {100, 100, 100}; }
     };
+    valiant::CollisionManager collision_manager;
     valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     valiant::CameraData camera_data = {1., {0, 0, 0}};
     Player player;
@@ -143,13 +147,14 @@ TEST_CASE("Renderer collision processing") {
     renderer.add_object(player);
     renderer.add_object(enemy);
     renderer.run();
+    collision_manager.fill_collider_objects(renderer.get_objects());
     // At this point the player and enemy object should not be colliding
-    renderer.process_collisions(camera_data);
+    collision_manager.process_collisions(camera_data);
     REQUIRE(player.has_collided == false);
     REQUIRE(enemy.has_collided == false);
     // Make enemy collide with player by manually changing position
     enemy.move_towards();
-    renderer.process_collisions(camera_data);
+    collision_manager.process_collisions(camera_data);
     REQUIRE(player.has_collided == true);
     REQUIRE(enemy.has_collided == true);
     REQUIRE(player.has_stay == false);
@@ -158,86 +163,43 @@ TEST_CASE("Renderer collision processing") {
     REQUIRE(enemy.has_exit == false);
     // Process collisions once again to register trigger on collision stay
     // method
-    renderer.process_collisions(camera_data);
+    collision_manager.process_collisions(camera_data);
     REQUIRE(player.has_stay == true);
     REQUIRE(player.has_stay == true);
     REQUIRE(player.has_exit == false);
     REQUIRE(enemy.has_exit == false);
     // Make enemy move away from player to remove collision
     enemy.move_away();
-    renderer.process_collisions(camera_data);
+    collision_manager.process_collisions(camera_data);
     REQUIRE(player.has_exit == true);
     REQUIRE(enemy.has_exit == true);
 }
+
 TEST_CASE("Renderer is colliding method") {
     SECTION("Test intersecting") {
         SDL_Rect rect_1 = {0, 0, 50, 50};
         SDL_Rect rect_2 = {49, 49, 50, 50};
-        bool is_colliding = valiant::Renderer::is_colliding(rect_1, rect_2);
+        bool is_colliding =
+            valiant::CollisionManager::is_colliding(rect_1, rect_2);
         REQUIRE(is_colliding == true);
     }
     SECTION("Test non-intersecting") {
         SDL_Rect rect_1 = {0, 0, 50, 50};
         SDL_Rect rect_2 = {50, 50, 50, 50};
-        bool is_colliding = valiant::Renderer::is_colliding(rect_1, rect_2);
+        bool is_colliding =
+            valiant::CollisionManager::is_colliding(rect_1, rect_2);
         REQUIRE(is_colliding == false);
-    }
-}
-
-TEST_CASE("Renderer get object data") {
-    class SpriteObject : public valiant::Object,
-                         public valiant::SpriteRenderer {
-       public:
-        void start() override {
-            sprite_renderer.sprite.width = 1;
-            sprite_renderer.sprite.height = 1;
-            transform.position = {1, 1, 1};
-        }
-    };
-    class RectangleObject : public valiant::Object, public valiant::Rectangle {
-       public:
-        void start() override {
-            shape.width = 1;
-            shape.height = 1;
-            transform.position = {1, 1, 1};
-        }
-    };
-    SECTION("Original data") {
-        SpriteObject sprite_object;
-        RectangleObject rectangle_object;
-        valiant::ObjectData sprite_object_data =
-            valiant::Renderer::get_object_data(&sprite_object);
-        valiant::ObjectData rectangle_object_data =
-            valiant::Renderer::get_object_data(&rectangle_object);
-        valiant::ObjectData expected_object_data = {0, 0, {0, 0, 0}};
-        REQUIRE(sprite_object_data == expected_object_data);
-        REQUIRE(rectangle_object_data == expected_object_data);
-    }
-    SECTION("Changed data") {
-        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
-        SpriteObject sprite_object;
-        RectangleObject rectangle_object;
-        renderer.add_object(sprite_object);
-        renderer.add_object(rectangle_object);
-        renderer.run();
-        valiant::ObjectData sprite_object_data =
-            valiant::Renderer::get_object_data(&sprite_object);
-        valiant::ObjectData rectangle_object_data =
-            valiant::Renderer::get_object_data(&rectangle_object);
-        valiant::ObjectData expected_object_data = {1, 1, {1, 1, 1}};
-        REQUIRE(sprite_object_data == expected_object_data);
-        REQUIRE(rectangle_object_data == expected_object_data);
     }
 }
 
 TEST_CASE("Renderer get collision from object") {
     valiant::Object object;
     valiant::Collision collision_1 =
-        valiant::Renderer::get_collision_from_object(&object);
+        valiant::CollisionManager::get_collision_from_object(&object);
     object.transform.position = {1, 1, 1};
     object.tag = "tagged";
     valiant::Collision collision_2 =
-        valiant::Renderer::get_collision_from_object(&object);
+        valiant::CollisionManager::get_collision_from_object(&object);
     // Test collision before changes (default values)
     valiant::Collision expected_collision_1 = {{{0, 0, 0}}, "untagged"};
     REQUIRE(collision_1 == expected_collision_1);
@@ -246,17 +208,18 @@ TEST_CASE("Renderer get collision from object") {
     REQUIRE(collision_2 == expected_collision_2);
 }
 
-TEST_CASE("Renderer collider object registration") {
+TEST_CASE("Renderer object registration") {
     class ObjectWithCollider : public valiant::Object,
                                public valiant::Collider {};
     class ObjectWithoutCollider : public valiant::Object {};
+    valiant::CollisionManager collision_manager;
     valiant::Renderer renderer(valiant::RenderMode::DISABLE);
     ObjectWithCollider object_with_collider;
     ObjectWithoutCollider object_without_collider;
     renderer.add_object(object_with_collider);
     renderer.add_object(object_without_collider);
-    renderer.fill_collider_objects();
+    collision_manager.fill_collider_objects(renderer.get_objects());
     // Only one object added has a collider
-    size_t collider_size = renderer.collider_objects_size();
+    size_t collider_size = collision_manager.collider_objects_size();
     REQUIRE(collider_size == 1);
 }
