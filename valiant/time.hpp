@@ -14,7 +14,6 @@ class Time {
    private:
     double delta_time_;
 };
-
 }  // namespace valiant
 
 #endif

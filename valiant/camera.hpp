@@ -15,6 +15,7 @@ struct CameraData {
 };
 
 const float DEFAULT_CAMERA_SIZE = 1.;
+
 class CameraComponent {
    public:
     float size;

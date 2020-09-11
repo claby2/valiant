@@ -13,6 +13,7 @@ struct Shape {
     explicit Shape(int new_width = 0, int new_height = 0)
         : width(new_width), height(new_height) {}
 };
+
 class Rectangle {
    public:
     Shape shape;

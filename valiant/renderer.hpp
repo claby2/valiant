@@ -58,20 +58,24 @@ class ObjectManager {
             ((object.width / camera.size) * DEFAULT_CAMERA_SIZE));
         int height = static_cast<int>(
             ((object.height / camera.size) * DEFAULT_CAMERA_SIZE));
-        int x = static_cast<int>(((object.position.x / camera.size) +
-                                  (LOGICAL_WINDOW_WIDTH / 2)) -
-                                 camera.position.x) -
-                (width / 2);
-        int y = static_cast<int>(((object.position.y / camera.size) +
-                                  (LOGICAL_WINDOW_HEIGHT / 2)) -
-                                 camera.position.y) -
-                (height / 2);
+        int x = static_cast<int>((object.position.x / camera.size) +
+                                 (LOGICAL_WINDOW_WIDTH / 2) -
+                                 camera.position.x - (width / 2));
+        int y = static_cast<int>((object.position.y / camera.size) +
+                                 (LOGICAL_WINDOW_HEIGHT / 2) -
+                                 camera.position.y - (height / 2));
         return {x, y, width, height};
     }
 };
 
 class CollisionManager : public ObjectManager {
    public:
+    CollisionManager() {}
+
+    CollisionManager(const CollisionManager& collision_manager)
+        : collider_objects_(collision_manager.collider_objects_),
+          collision_matrix_(collision_manager.collision_matrix_) {}
+
     void process_collisions(CameraData camera) {
         for (size_t i = 0; i < collider_objects_.size(); ++i) {
             Object* object_1 = collider_objects_[i];
@@ -96,6 +100,7 @@ class CollisionManager : public ObjectManager {
                     }
                     collision_matrix_[i][j] = false;
                 } else {
+                    // A valid collision has been detected
                     if (collision_matrix_[i][j]) {
                         // Object at i and j previous collided before and
                         // are right colliding right now
@@ -230,9 +235,9 @@ class Renderer : public ObjectManager {
                 uint64_t last = start;
                 start = SDL_GetPerformanceCounter();
                 // Calculate delta time in seconds
-                double delta = (((start - last) * 1000 /
-                                 (double)SDL_GetPerformanceFrequency()) *
-                                0.001);
+                double delta =
+                    (start - last) /
+                    static_cast<double>(SDL_GetPerformanceFrequency());
                 if (SDL_PollEvent(&event) != 0) {
                     if (event.type == SDL_QUIT) {
                         quit = true;
@@ -240,57 +245,22 @@ class Renderer : public ObjectManager {
                 }
                 // Run update methods
                 for (auto object : objects_) {
-                    // Update event state for each object
                     object->input.event = event;
-                    // Update time for each object
                     object->time.set(delta);
-                    // Run update object method
                     object->update();
                 }
                 camera_->input.event = event;
                 camera_->time.set(delta);
                 camera_->update();
+                // Get camera data
+                CameraData camera_data = {camera_->camera.size,
+                                          camera_->transform.position};
                 // Rendering
                 SDL_SetRenderDrawColor(renderer_, background_color_.r,
                                        background_color_.g, background_color_.b,
                                        background_color_.a);
                 SDL_RenderClear(renderer_);
-                // Get camera data
-                CameraData camera_data = {camera_->camera.size,
-                                          camera_->transform.position};
-                for (auto object : objects_) {
-                    if (SpriteRenderer* sprite_object =
-                            dynamic_cast<SpriteRenderer*>(object)) {
-                        // Object has sprite renderer component
-                        SpriteRendererComponent sprite_renderer =
-                            sprite_object->sprite_renderer;
-                        if (sprite_renderer.sprite.texture == nullptr) {
-                            sprite_object->sprite_renderer.sprite
-                                .create_texture(renderer_);
-                        }
-                        SDL_Rect rect = get_object_camera_position(
-                            get_object_data(object), camera_data);
-                        SDL_RendererFlip flip = (SDL_RendererFlip)(
-                            (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
-                            (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));
-                        SDL_RenderCopyEx(renderer_,
-                                         sprite_renderer.sprite.texture,
-                                         nullptr, &rect, 0.0, nullptr, flip);
-                    } else if (Rectangle* rectangle_object =
-                                   dynamic_cast<Rectangle*>(object)) {
-                        // Object has rectangle component
-                        Shape shape = rectangle_object->shape;
-                        SDL_Rect rect = get_object_camera_position(
-                            get_object_data(object), camera_data);
-                        SDL_SetRenderDrawColor(renderer_, shape.color.r,
-                                               shape.color.g, shape.color.b,
-                                               shape.color.a);
-                        if (shape.fill == true) {
-                            SDL_RenderFillRect(renderer_, &rect);
-                        }
-                        SDL_RenderDrawRect(renderer_, &rect);
-                    }
-                }
+                render(camera_data);
                 collision_manager_.process_collisions(camera_data);
                 SDL_RenderPresent(renderer_);
             }
@@ -308,6 +278,41 @@ class Renderer : public ObjectManager {
     RenderMode render_mode_;
     SDL_Renderer* renderer_;
     SDL_Window* window_;
+
+    void render(CameraData camera_data) {
+        for (auto object : objects_) {
+            if (SpriteRenderer* sprite_object =
+                    dynamic_cast<SpriteRenderer*>(object)) {
+                // Object has sprite renderer component
+                SpriteRendererComponent sprite_renderer =
+                    sprite_object->sprite_renderer;
+                if (sprite_renderer.sprite.texture == nullptr) {
+                    // Texture has not been created yet
+                    sprite_object->sprite_renderer.sprite.create_texture(
+                        renderer_);
+                }
+                SDL_Rect rect = get_object_camera_position(
+                    get_object_data(object), camera_data);
+                SDL_RendererFlip flip = (SDL_RendererFlip)(
+                    (sprite_renderer.flip_x ? SDL_FLIP_HORIZONTAL : 0) |
+                    (sprite_renderer.flip_y ? SDL_FLIP_VERTICAL : 0));
+                SDL_RenderCopyEx(renderer_, sprite_renderer.sprite.texture,
+                                 nullptr, &rect, 0.0, nullptr, flip);
+            } else if (Rectangle* rectangle_object =
+                           dynamic_cast<Rectangle*>(object)) {
+                // Object has rectangle component
+                Shape shape = rectangle_object->shape;
+                SDL_Rect rect = get_object_camera_position(
+                    get_object_data(object), camera_data);
+                SDL_SetRenderDrawColor(renderer_, shape.color.r, shape.color.g,
+                                       shape.color.b, shape.color.a);
+                if (shape.fill == true) {
+                    SDL_RenderFillRect(renderer_, &rect);
+                }
+                SDL_RenderDrawRect(renderer_, &rect);
+            }
+        }
+    }
 
     void initialize_sdl() {
         if (render_mode_ == RenderMode::ENABLE) {
