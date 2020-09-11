@@ -29,7 +29,12 @@ const int LOGICAL_WINDOW_HEIGHT = 1080;
 
 const Color DEFAULT_BACKGROUND_COLOR = {0, 0, 0, 255};
 
-enum class RenderMode { ENABLE, DISABLE };
+typedef enum : uint_fast8_t {
+    ENABLE = (1 << 0),
+    DISABLE = (1 << 1),
+    FULLSCREEN = (1 << 2),
+    VSYNC = (1 << 3)
+} RenderFlags;
 
 class ObjectManager {
    public:
@@ -161,13 +166,13 @@ class CollisionManager : public ObjectManager {
 
 class Renderer : public ObjectManager {
    public:
-    explicit Renderer(RenderMode render_mode = RenderMode::ENABLE)
-        : background_color_(DEFAULT_BACKGROUND_COLOR),
+    explicit Renderer(uint_fast8_t flags = ENABLE)
+        : flags_(flags),
+          background_color_(DEFAULT_BACKGROUND_COLOR),
           camera_(nullptr),
           window_width_(DEFAULT_WINDOW_WIDTH),
           window_height_(DEFAULT_WINDOW_HEIGHT),
           has_camera_(false),
-          render_mode_(render_mode),
           renderer_(nullptr),
           window_(nullptr) {
         initialize_sdl();
@@ -176,14 +181,14 @@ class Renderer : public ObjectManager {
     ~Renderer() { close_sdl(); }
 
     Renderer(const Renderer& renderer)
-        : collision_manager_(renderer.collision_manager_),
+        : flags_(renderer.flags_),
+          collision_manager_(renderer.collision_manager_),
           objects_(renderer.objects_),
           background_color_(renderer.background_color_),
           camera_(renderer.camera_),
           window_width_(renderer.window_width_),
           window_height_(renderer.window_height_),
           has_camera_(renderer.has_camera_),
-          render_mode_(renderer.render_mode_),
           renderer_(renderer.renderer_),
           window_(renderer.window_) {}
 
@@ -232,7 +237,7 @@ class Renderer : public ObjectManager {
             object->start();
         }
         camera_->start();
-        if (render_mode_ == RenderMode::ENABLE) {
+        if (flags_ & ENABLE) {
             SDL_Event event;
             bool quit = false;
             uint64_t start = 0;
@@ -274,6 +279,7 @@ class Renderer : public ObjectManager {
     }
 
    private:
+    uint_fast8_t flags_;
     CollisionManager collision_manager_;
     std::vector<Object*> objects_;
     Color background_color_;
@@ -281,7 +287,6 @@ class Renderer : public ObjectManager {
     int window_width_;
     int window_height_;
     bool has_camera_{false};
-    RenderMode render_mode_;
     SDL_Renderer* renderer_;
     SDL_Window* window_;
 
@@ -321,16 +326,23 @@ class Renderer : public ObjectManager {
     }
 
     void initialize_sdl() {
-        if (render_mode_ == RenderMode::ENABLE) {
+        if (flags_ & ENABLE) {
             SDL_Init(SDL_INIT_VIDEO);
             IMG_Init(IMG_INIT_PNG);
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-            window_ = SDL_CreateWindow(
-                "Valiant Engine", SDL_WINDOWPOS_UNDEFINED,
-                SDL_WINDOWPOS_UNDEFINED, window_width_, window_height_,
-                SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-            renderer_ =
-                SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED);
+            uint32_t window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+            if (flags_ & FULLSCREEN) {
+                window_flags |= SDL_WINDOW_FULLSCREEN;
+            }
+            window_ =
+                SDL_CreateWindow("Valiant Engine", SDL_WINDOWPOS_UNDEFINED,
+                                 SDL_WINDOWPOS_UNDEFINED, window_width_,
+                                 window_height_, window_flags);
+            uint32_t renderer_flags = SDL_RENDERER_ACCELERATED;
+            if (flags_ & VSYNC) {
+                renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
+            }
+            renderer_ = SDL_CreateRenderer(window_, -1, renderer_flags);
             SDL_RenderSetLogicalSize(renderer_, LOGICAL_WINDOW_WIDTH,
                                      LOGICAL_WINDOW_HEIGHT);
         }

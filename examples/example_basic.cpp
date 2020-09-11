@@ -77,7 +77,7 @@ class Player : public valiant::Object, public valiant::SpriteRenderer {
 };
 
 int main() {
-    valiant::Renderer renderer;
+    valiant::Renderer renderer(valiant::ENABLE | valiant::VSYNC);
     Player player;
     Camera camera;
     renderer.add_object(player);

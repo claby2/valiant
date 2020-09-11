@@ -26,7 +26,7 @@ void test_object_camera_position(const valiant::Renderer &renderer,
 }
 
 TEST_CASE("Renderer default window dimensions") {
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     int renderer_width = renderer.window_width();
     int renderer_height = renderer.window_height();
     REQUIRE(renderer_width == valiant::DEFAULT_WINDOW_WIDTH);
@@ -35,13 +35,13 @@ TEST_CASE("Renderer default window dimensions") {
 
 TEST_CASE("Renderer background") {
     SECTION("Default background color") {
-        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Renderer renderer(valiant::DISABLE);
         valiant::Color background_color = renderer.background_color();
         valiant::Color expected_color = {0, 0, 0, 255};
         REQUIRE(background_color == expected_color);
     }
     SECTION("Set background color without color object") {
-        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Renderer renderer(valiant::DISABLE);
         valiant::Color expected_color = {255, 255, 255, 0};
         renderer.set_background_color(expected_color.r, expected_color.g,
                                       expected_color.b, expected_color.a);
@@ -49,7 +49,7 @@ TEST_CASE("Renderer background") {
         REQUIRE(background_color == expected_color);
     }
     SECTION("Set background color with color object") {
-        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Renderer renderer(valiant::DISABLE);
         valiant::Color expected_color = {255, 255, 255, 0};
         valiant::Color new_background_color(expected_color);
         renderer.set_background_color(new_background_color);
@@ -59,7 +59,7 @@ TEST_CASE("Renderer background") {
 }
 
 TEST_CASE("Renderer invalid camera size exception") {
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     valiant::ObjectData object_data = {32, 64, {0, 0, 0}};
     valiant::CameraData invalid_camera_data_1 = {0., {0, 0, 0}};
     valiant::CameraData invalid_camera_data_2 = {-1., {0, 0, 0}};
@@ -74,7 +74,7 @@ TEST_CASE("Renderer invalid camera size exception") {
 }
 
 TEST_CASE("Renderer camera positioning") {
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     SECTION("Center positioning") {
         valiant::ObjectData object_data = {32, 64, {0, 0, 0}};
         valiant::CameraData camera_data = {1., {0, 0, 0}};
@@ -144,7 +144,7 @@ TEST_CASE("Renderer collision processing") {
             void move_away() { transform.position = {100, 100, 100}; }
         };
         valiant::CollisionManager collision_manager;
-        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Renderer renderer(valiant::DISABLE);
         valiant::CameraData camera_data = {1., {0, 0, 0}};
         Player player;
         Enemy enemy;
@@ -217,7 +217,7 @@ TEST_CASE("Renderer collision processing") {
             void add_tag() { tag = "tagged"; }
         };
         valiant::CollisionManager collision_manager;
-        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Renderer renderer(valiant::DISABLE);
         valiant::CameraData camera_data = {1., {0, 0, 0}};
         Player player;
         Object object;
@@ -270,7 +270,7 @@ TEST_CASE("Renderer collider object registration") {
                                public valiant::Collider {};
     class ObjectWithoutCollider : public valiant::Object {};
     valiant::CollisionManager collision_manager;
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     ObjectWithCollider object_with_collider;
     ObjectWithoutCollider object_without_collider;
     renderer.add_object(object_with_collider);

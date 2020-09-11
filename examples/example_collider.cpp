@@ -91,7 +91,7 @@ class RectangleObject : public valiant::Object,
 };
 
 int main() {
-    valiant::Renderer renderer;
+    valiant::Renderer renderer(valiant::ENABLE | valiant::VSYNC);
     Player player;
     RectangleObject rectangle_object;
     renderer.add_object(player);

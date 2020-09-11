@@ -26,7 +26,7 @@ class RectangleObject2 : public valiant::Object, public valiant::Rectangle {
 };
 
 int main() {
-    valiant::Renderer renderer;
+    valiant::Renderer renderer(valiant::ENABLE | valiant::VSYNC);
     RectangleObject1 rectangle_object1;
     RectangleObject2 rectangle_object2;
     renderer.add_object(rectangle_object1);

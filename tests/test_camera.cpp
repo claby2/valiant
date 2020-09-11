@@ -26,7 +26,7 @@ TEST_CASE("Camera methods") {
         bool has_awake_;
         bool has_start_;
     };
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     Camera camera;
     renderer.add_camera(camera);
     renderer.run();

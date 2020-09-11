@@ -12,7 +12,7 @@ TEST_CASE("Object tagging") {
         void start() override { tag = "player"; }
     };
     Player player;
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     std::string default_player_tag = player.tag;
     renderer.add_object(player);
     renderer.run();
@@ -52,7 +52,7 @@ TEST_CASE("Object method execution") {
     };
     Player player;
     Enemy enemy;
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     renderer.add_object(player);
     renderer.add_object(enemy);
     renderer.run();
@@ -77,7 +77,7 @@ TEST_CASE("Object transform") {
     // Test default position values
     valiant::Vector3 expected_position = {0, 0, 0};
     REQUIRE(position == expected_position);
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     renderer.add_object(player);
     renderer.run();
     position = player.transform.position;
@@ -116,7 +116,7 @@ TEST_CASE("Object get object data") {
         REQUIRE(rectangle_object_data == expected_object_data);
     }
     SECTION("Changed data") {
-        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::Renderer renderer(valiant::DISABLE);
         SpriteObject sprite_object;
         RectangleObject rectangle_object;
         renderer.add_object(sprite_object);

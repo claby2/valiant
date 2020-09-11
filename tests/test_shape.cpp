@@ -31,7 +31,7 @@ TEST_CASE("Shape rectangle properties") {
         }
     };
     ShapeObject shape_object;
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+    valiant::Renderer renderer(valiant::DISABLE);
     renderer.add_object(shape_object);
     renderer.run();
     valiant::Shape shape = shape_object.shape;
