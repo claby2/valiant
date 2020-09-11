@@ -78,25 +78,19 @@ class CollisionManager : public ObjectManager {
 
     void process_collisions(CameraData camera) {
         for (size_t i = 0; i < collider_objects_.size(); ++i) {
-            Object* object_1 = collider_objects_[i];
-            Collider* collider_1 = dynamic_cast<Collider*>(object_1);
-            SDL_Rect object_1_rect =
-                get_object_camera_position(get_object_data(object_1), camera);
+            CollisionData collision_1(collider_objects_[i], camera);
             for (size_t j = i + 1; j < collider_objects_.size(); ++j) {
-                Object* object_2 = collider_objects_[j];
-                Collider* collider_2 = dynamic_cast<Collider*>(object_2);
-                SDL_Rect object_2_rect = get_object_camera_position(
-                    get_object_data(object_2), camera);
-                if ((!collider_1->collider.enabled ||
-                     !collider_2->collider.enabled) ||
-                    (!is_colliding(object_1_rect, object_2_rect))) {
+                CollisionData collision_2(collider_objects_[j], camera);
+                if ((!collision_1.collider->collider.enabled ||
+                     !collision_2.collider->collider.enabled) ||
+                    (!is_colliding(collision_1.rect, collision_2.rect))) {
                     if (collision_matrix_[i][j]) {
                         // Object at i and j were previously colliding. Execute
                         // exit collision method
-                        collider_1->on_collision_exit(
-                            get_collision_from_object(object_1));
-                        collider_2->on_collision_exit(
-                            get_collision_from_object(object_2));
+                        collision_1.collider->on_collision_exit(
+                            get_collision_from_object(collision_1.object));
+                        collision_2.collider->on_collision_exit(
+                            get_collision_from_object(collision_1.object));
                     }
                     collision_matrix_[i][j] = false;
                 } else {
@@ -104,17 +98,17 @@ class CollisionManager : public ObjectManager {
                     if (collision_matrix_[i][j]) {
                         // Object at i and j previous collided before and
                         // are right colliding right now
-                        collider_1->on_collision_stay(
-                            get_collision_from_object(object_1));
-                        collider_2->on_collision_stay(
-                            get_collision_from_object(object_2));
+                        collision_1.collider->on_collision_stay(
+                            get_collision_from_object(collision_1.object));
+                        collision_2.collider->on_collision_stay(
+                            get_collision_from_object(collision_2.object));
                     } else {
                         // Object at i and j were not colliding previously,
                         // but are colliding right now
-                        collider_1->on_collision_enter(
-                            get_collision_from_object(object_1));
-                        collider_2->on_collision_enter(
-                            get_collision_from_object(object_2));
+                        collision_1.collider->on_collision_enter(
+                            get_collision_from_object(collision_1.object));
+                        collision_2.collider->on_collision_enter(
+                            get_collision_from_object(collision_2.object));
                         collision_matrix_[i][j] = true;
                     }
                 }
@@ -151,6 +145,18 @@ class CollisionManager : public ObjectManager {
    private:
     std::vector<Object*> collider_objects_;
     std::vector<std::vector<bool>> collision_matrix_;
+
+    struct CollisionData {
+        Object* object;
+        Collider* collider;
+        SDL_Rect rect;
+
+        CollisionData(Object* new_object, CameraData camera)
+            : object(new_object),
+              collider(dynamic_cast<Collider*>(new_object)),
+              rect(get_object_camera_position(get_object_data(new_object),
+                                              camera)) {}
+    };
 };
 
 class Renderer : public ObjectManager {
