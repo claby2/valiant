@@ -280,3 +280,21 @@ TEST_CASE("Renderer collider object registration") {
     size_t collider_size = collision_manager.collider_objects_size();
     REQUIRE(collider_size == 1);
 }
+
+TEST_CASE("Renderer get window flags") {
+    uint_fast8_t input_window_flags = valiant::FULLSCREEN;
+    uint32_t output_window_flags =
+        valiant::Renderer::get_window_flags(input_window_flags);
+    bool has_fullscreen =
+        static_cast<bool>(output_window_flags & SDL_WINDOW_FULLSCREEN);
+    REQUIRE(has_fullscreen == true);
+}
+
+TEST_CASE("Renderer get renderer flags") {
+    uint_fast8_t input_renderer_flags = valiant::VSYNC;
+    uint32_t output_renderer_flags =
+        valiant::Renderer::get_renderer_flags(input_renderer_flags);
+    bool has_vsync =
+        static_cast<bool>(output_renderer_flags & SDL_RENDERER_PRESENTVSYNC);
+    REQUIRE(has_vsync == true);
+}

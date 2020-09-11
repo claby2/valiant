@@ -219,6 +219,22 @@ class Renderer : public ObjectManager {
 
     void set_background_color(Color color) { background_color_ = color; }
 
+    static uint32_t get_window_flags(uint_fast8_t flags) {
+        uint32_t window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+        if (flags & FULLSCREEN) {
+            window_flags |= SDL_WINDOW_FULLSCREEN;
+        }
+        return window_flags;
+    }
+
+    static uint32_t get_renderer_flags(uint_fast8_t flags) {
+        uint32_t renderer_flags = SDL_RENDERER_ACCELERATED;
+        if (flags & VSYNC) {
+            renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
+        }
+        return renderer_flags;
+    }
+
     void run() {
         collision_manager_.fill_collider_objects(objects_);
         // Check if camera has been added
@@ -330,19 +346,12 @@ class Renderer : public ObjectManager {
             SDL_Init(SDL_INIT_VIDEO);
             IMG_Init(IMG_INIT_PNG);
             SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-            uint32_t window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
-            if (flags_ & FULLSCREEN) {
-                window_flags |= SDL_WINDOW_FULLSCREEN;
-            }
             window_ =
                 SDL_CreateWindow("Valiant Engine", SDL_WINDOWPOS_UNDEFINED,
                                  SDL_WINDOWPOS_UNDEFINED, window_width_,
-                                 window_height_, window_flags);
-            uint32_t renderer_flags = SDL_RENDERER_ACCELERATED;
-            if (flags_ & VSYNC) {
-                renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
-            }
-            renderer_ = SDL_CreateRenderer(window_, -1, renderer_flags);
+                                 window_height_, get_window_flags(flags_));
+            renderer_ =
+                SDL_CreateRenderer(window_, -1, get_renderer_flags(flags_));
             SDL_RenderSetLogicalSize(renderer_, LOGICAL_WINDOW_WIDTH,
                                      LOGICAL_WINDOW_HEIGHT);
         }
