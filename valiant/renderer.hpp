@@ -88,7 +88,7 @@ class CollisionManager : public ObjectManager {
                         // Object at i and j were previously colliding. Execute
                         // exit collision method
                         collision_1.collider->on_collision_exit(
-                            get_collision_from_object(collision_1.object));
+                            get_collision_from_object(collision_2.object));
                         collision_2.collider->on_collision_exit(
                             get_collision_from_object(collision_1.object));
                     }
@@ -99,16 +99,16 @@ class CollisionManager : public ObjectManager {
                         // Object at i and j previous collided before and
                         // are right colliding right now
                         collision_1.collider->on_collision_stay(
-                            get_collision_from_object(collision_1.object));
-                        collision_2.collider->on_collision_stay(
                             get_collision_from_object(collision_2.object));
+                        collision_2.collider->on_collision_stay(
+                            get_collision_from_object(collision_1.object));
                     } else {
                         // Object at i and j were not colliding previously,
                         // but are colliding right now
                         collision_1.collider->on_collision_enter(
-                            get_collision_from_object(collision_1.object));
-                        collision_2.collider->on_collision_enter(
                             get_collision_from_object(collision_2.object));
+                        collision_2.collider->on_collision_enter(
+                            get_collision_from_object(collision_1.object));
                         collision_matrix_[i][j] = true;
                     }
                 }

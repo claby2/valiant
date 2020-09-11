@@ -93,86 +93,143 @@ TEST_CASE("Renderer camera positioning") {
 }
 
 TEST_CASE("Renderer collision processing") {
-    class ColliderObject : public valiant::Collider {
-       public:
-        bool has_collided{false};
-        bool has_stay{false};
-        bool has_exit{false};
+    SECTION("Collider methods") {
+        class ColliderObject : public valiant::Collider {
+           public:
+            bool has_collided{false};
+            bool has_stay{false};
+            bool has_exit{false};
 
-        void on_collision_enter(const valiant::Collision &collision) override {
-            has_collided = true;
-        }
+            void on_collision_enter(
+                const valiant::Collision &collision) override {
+                has_collided = true;
+            }
 
-        void on_collision_stay(const valiant::Collision &collision) override {
-            has_stay = true;
-        }
+            void on_collision_stay(
+                const valiant::Collision &collision) override {
+                has_stay = true;
+            }
 
-        void on_collision_exit(const valiant::Collision &collision) override {
-            has_exit = true;
-        }
-    };
-    class Player : public valiant::Object,
-                   public valiant::Rectangle,
-                   public ColliderObject {
-       public:
-        void start() override {
-            transform.position.x = 0;
-            transform.position.y = 0;
-            transform.position.z = 0;
-            shape.width = 50;
-            shape.height = 50;
-        }
-    };
-    class Enemy : public valiant::Object,
-                  public valiant::Rectangle,
-                  public ColliderObject {
-       public:
-        void start() override {
-            transform.position.x = 100;
-            transform.position.y = 100;
-            transform.position.z = 100;
-            shape.width = 50;
-            shape.height = 50;
-        }
+            void on_collision_exit(
+                const valiant::Collision &collision) override {
+                has_exit = true;
+            }
+        };
+        class Player : public valiant::Object,
+                       public valiant::Rectangle,
+                       public ColliderObject {
+           public:
+            void start() override {
+                transform.position.x = 0;
+                transform.position.y = 0;
+                transform.position.z = 0;
+                shape.width = 50;
+                shape.height = 50;
+            }
+        };
+        class Enemy : public valiant::Object,
+                      public valiant::Rectangle,
+                      public ColliderObject {
+           public:
+            void start() override {
+                transform.position.x = 100;
+                transform.position.y = 100;
+                transform.position.z = 100;
+                shape.width = 50;
+                shape.height = 50;
+            }
 
-        void move_towards() { transform.position = {0, 0, 0}; }
+            void move_towards() { transform.position = {0, 0, 0}; }
 
-        void move_away() { transform.position = {100, 100, 100}; }
-    };
-    valiant::CollisionManager collision_manager;
-    valiant::Renderer renderer(valiant::RenderMode::DISABLE);
-    valiant::CameraData camera_data = {1., {0, 0, 0}};
-    Player player;
-    Enemy enemy;
-    renderer.add_object(player);
-    renderer.add_object(enemy);
-    renderer.run();
-    collision_manager.fill_collider_objects(renderer.get_objects());
-    // At this point the player and enemy object should not be colliding
-    collision_manager.process_collisions(camera_data);
-    REQUIRE(player.has_collided == false);
-    REQUIRE(enemy.has_collided == false);
-    // Make enemy collide with player by manually changing position
-    enemy.move_towards();
-    collision_manager.process_collisions(camera_data);
-    REQUIRE(player.has_collided == true);
-    REQUIRE(enemy.has_collided == true);
-    REQUIRE(player.has_stay == false);
-    REQUIRE(enemy.has_stay == false);
-    REQUIRE(player.has_exit == false);
-    REQUIRE(enemy.has_exit == false);
-    // Process collisions once again to register trigger on collision stay
-    // method
-    collision_manager.process_collisions(camera_data);
-    REQUIRE(player.has_stay == true);
-    REQUIRE(player.has_stay == true);
-    REQUIRE(player.has_exit == false);
-    REQUIRE(enemy.has_exit == false);
-    // Make enemy move away from player to remove collision
-    enemy.move_away();
-    collision_manager.process_collisions(camera_data);
-    REQUIRE(player.has_exit == true);
-    REQUIRE(enemy.has_exit == true);
+            void move_away() { transform.position = {100, 100, 100}; }
+        };
+        valiant::CollisionManager collision_manager;
+        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::CameraData camera_data = {1., {0, 0, 0}};
+        Player player;
+        Enemy enemy;
+        renderer.add_object(player);
+        renderer.add_object(enemy);
+        renderer.run();
+        collision_manager.fill_collider_objects(renderer.get_objects());
+        // At this point the player and enemy object should not be colliding
+        collision_manager.process_collisions(camera_data);
+        REQUIRE(player.has_collided == false);
+        REQUIRE(enemy.has_collided == false);
+        // Make enemy collide with player by manually changing position
+        enemy.move_towards();
+        collision_manager.process_collisions(camera_data);
+        REQUIRE(player.has_collided == true);
+        REQUIRE(enemy.has_collided == true);
+        REQUIRE(player.has_stay == false);
+        REQUIRE(enemy.has_stay == false);
+        REQUIRE(player.has_exit == false);
+        REQUIRE(enemy.has_exit == false);
+        // Process collisions once again to register trigger on collision stay
+        // method
+        collision_manager.process_collisions(camera_data);
+        REQUIRE(player.has_stay == true);
+        REQUIRE(player.has_stay == true);
+        REQUIRE(player.has_exit == false);
+        REQUIRE(enemy.has_exit == false);
+        // Make enemy move away from player to remove collision
+        enemy.move_away();
+        collision_manager.process_collisions(camera_data);
+        REQUIRE(player.has_exit == true);
+        REQUIRE(enemy.has_exit == true);
+    }
+    SECTION("Object tagging") {
+        class Player : public valiant::Object,
+                       public valiant::Rectangle,
+                       public valiant::Collider {
+           public:
+            bool collided{false};
+
+            void start() override {
+                transform.position.x = 0;
+                transform.position.y = 0;
+                transform.position.z = 0;
+                shape.width = 50;
+                shape.height = 50;
+            }
+
+            void on_collision_enter(
+                const valiant::Collision &collision) override {
+                if (collision.tag == "tagged") {
+                    collided = true;
+                } else {
+                    collided = false;
+                }
+            }
+        };
+        class Object : public valiant::Object,
+                       public valiant::Rectangle,
+                       public valiant::Collider {
+           public:
+            void start() override {
+                transform.position.x = 0;
+                transform.position.y = 0;
+                transform.position.z = 0;
+                shape.width = 50;
+                shape.height = 50;
+            }
+
+            void add_tag() { tag = "tagged"; }
+        };
+        valiant::CollisionManager collision_manager;
+        valiant::Renderer renderer(valiant::RenderMode::DISABLE);
+        valiant::CameraData camera_data = {1., {0, 0, 0}};
+        Player player;
+        Object object;
+        renderer.add_object(player);
+        renderer.add_object(object);
+        renderer.run();
+        collision_manager.fill_collider_objects(renderer.get_objects());
+        // Set the object's tag
+        object.add_tag();
+        collision_manager.process_collisions(camera_data);
+        REQUIRE(player.collided == true);
+    }
 }
 
 TEST_CASE("Renderer is colliding method") {
@@ -208,7 +265,7 @@ TEST_CASE("Renderer get collision from object") {
     REQUIRE(collision_2 == expected_collision_2);
 }
 
-TEST_CASE("Renderer object registration") {
+TEST_CASE("Renderer collider object registration") {
     class ObjectWithCollider : public valiant::Object,
                                public valiant::Collider {};
     class ObjectWithoutCollider : public valiant::Object {};
