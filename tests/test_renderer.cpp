@@ -298,3 +298,20 @@ TEST_CASE("Renderer get renderer flags") {
         static_cast<bool>(output_renderer_flags & SDL_RENDERER_PRESENTVSYNC);
     REQUIRE(has_vsync == true);
 }
+
+TEST_CASE("Renderer set valid window size") {
+    valiant::Renderer renderer(valiant::DISABLE);
+    int expected_window_width = 1920;
+    int expected_window_height = 1080;
+    renderer.set_window_size(expected_window_width, expected_window_height);
+    int window_width = renderer.window_width();
+    int window_height = renderer.window_height();
+    REQUIRE(window_width == expected_window_width);
+    REQUIRE(window_height == expected_window_height);
+}
+
+TEST_CASE("Renderer set invalid window size") {
+    valiant::Renderer renderer(valiant::DISABLE);
+    REQUIRE_THROWS_WITH(renderer.set_window_size(0, 0),
+                        "Window size must be > 0");
+}

@@ -219,6 +219,15 @@ class Renderer : public ObjectManager {
 
     void set_background_color(Color color) { background_color_ = color; }
 
+    void set_window_size(int width, int height) {
+        if (width <= 0 || height <= 0) {
+            throw ValiantError("Window size must be > 0");
+        }
+        window_width_ = width;
+        window_height_ = height;
+        SDL_SetWindowSize(window_, window_width_, window_height_);
+    }
+
     static uint32_t get_window_flags(uint_fast8_t flags) {
         uint32_t window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
         if (flags & FULLSCREEN) {
