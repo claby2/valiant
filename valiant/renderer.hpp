@@ -265,7 +265,7 @@ class Renderer : public ObjectManager {
         if (flags_ & ENABLE) {
             SDL_Event event;
             bool quit = false;
-            uint64_t start = 0;
+            uint64_t start = SDL_GetPerformanceCounter();
             while (!quit) {
                 SDL_GetWindowSize(window_, &window_width_, &window_height_);
                 uint64_t last = start;
