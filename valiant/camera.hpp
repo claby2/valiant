@@ -22,16 +22,10 @@ class CameraComponent {
     explicit CameraComponent(float new_size = DEFAULT_CAMERA_SIZE)
         : size(new_size) {}
 };
-class Camera {
+
+class Camera : public valiant::Object {
    public:
     CameraComponent camera;
-    Transform transform;
-    Input input;
-    Time time;
-    std::string tag = "untagged";
-    virtual void awake() {}
-    virtual void start() {}
-    virtual void update() {}
 };
 }  // namespace valiant
 #endif
